@@ -137,7 +137,9 @@ function hoyts_fetch_and_insert_sessions() {
     foreach ( $sessions as $session ) {
         $movie_hoyts_id = sanitize_text_field( $session['movieId'] ); // Hoyts movie ID
         $session_id = intval( $session['id'] ); // Unique session ID
-        error_log("Processing session $session_id for movie $movie_hoyts_id");
+
+        //FOR DEBUG
+        //error_log("Processing session $session_id for movie $movie_hoyts_id");
         
         // Check if the session already exists using the session ID (stored as post meta)
         $args = array(
@@ -186,7 +188,7 @@ function hoyts_fetch_and_insert_sessions() {
         
         // Prepare the session post data
         $post_data = array(
-            'post_title'    => 'Session for Movie: ' . get_the_title( $movie_post_id ),
+            'post_title'    => 'Hoyts Session For: ' . get_the_title( $movie_post_id ) . ' at ',
             'post_status'   => 'publish',
             'post_type'     => 'session', // Custom post type for sessions
             'post_parent'   => $movie_post_id // Set the movie as the parent post
