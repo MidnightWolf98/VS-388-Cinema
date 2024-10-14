@@ -6,6 +6,9 @@ Version: 0.04 Beta
 Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm Mihir Anand
 */
 
+// Import Cinema Modules
+require_once plugin_dir_path(__FILE__) . 'hoyts-module.php';
+
 // Function to fetch and insert movies
 function hoyts_fetch_and_insert_movies() {
     // Define the API endpoint
