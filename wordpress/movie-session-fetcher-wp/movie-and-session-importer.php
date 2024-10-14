@@ -387,5 +387,30 @@ function register_session_taxonomies() {
     );
 
     register_taxonomy( 'suburb', array( 'session' ), $args_suburb );
+
+    $labels_cinema = array(
+        'name'              => _x( 'Cinemas', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Cinema', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Cinemas' ),
+        'all_items'         => __( 'All Cinemas' ),
+        'parent_item'       => __( 'Parent Cinema' ),
+        'parent_item_colon' => __( 'Parent Cinema:' ),
+        'edit_item'         => __( 'Edit Cinema' ),
+        'update_item'       => __( 'Update Cinema' ),
+        'add_new_item'      => __( 'Add New Cinema' ),
+        'new_item_name'     => __( 'New Cinema Name' ),
+        'menu_name'         => __( 'Cinema' ),
+    );
+
+    $args_cinema = array(
+        'hierarchical'      => true, // Set to true for parent/child relationships (e.g., categories)
+        'labels'            => $labels_cinema,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array( 'slug' => 'cinema' ),
+    );
+
+    register_taxonomy( 'cinema', array( 'session' ), $args_cinema );
 }
 add_action( 'init', 'register_session_taxonomies' );

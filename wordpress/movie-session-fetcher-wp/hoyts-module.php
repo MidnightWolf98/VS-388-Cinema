@@ -1,4 +1,8 @@
 <?php
+// ************ HOYTS MODULE ************
+// This module is responsible for fetching movie & its sessions from Hoyts Cinema
+
+// list of venues & their codes, required for fetching sessions
 $venues = [
     // VICTORIA VENUES FOR HOYTS
        (object) [
