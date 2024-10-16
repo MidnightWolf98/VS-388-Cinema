@@ -125,11 +125,75 @@ function hoyts_fetch_and_insert_movies() {
             update_post_meta( $post_id, 'runtime', intval( $movie['runtime']['minutes'] ) );
             update_post_meta( $post_id, 'genres', implode( ', ', array_map( 'sanitize_text_field', $movie['genres'] ) ) );
             update_post_meta( $post_id, 'rating', sanitize_text_field( $movie['rating']['id'] ) );
-            update_post_meta( $post_id, 'link', esc_url( $movie['link'] ) );
+            update_post_meta( $post_id, 'link', esc_url( 'https://hoyts.com.au' . $movie['link'] ) );
+        }
+
+        if ( !empty( $movie['posterImage'] ) ) {
+            // Upload the movie poster from the URL
+            $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['poster'], $post_id );
+            
+            if ( $poster_id ) {
+                // If the poster was uploaded successfully, set it as the featured image
+                set_post_thumbnail( $post_id, $poster_id );
+            }
         }
         
         wp_reset_postdata(); // Reset the WP_Query data
     }
+}
+
+// Get Poster for movie
+function upload_image_from_url($image_url, $post_id) {
+    // Get the file name of the image
+    $file_name = basename($image_url);
+    
+    // Download the image from the URL
+    $response = wp_remote_get($image_url);
+    
+    if (is_wp_error($response)) {
+        return false; // Handle error if the image couldn't be downloaded
+    }
+    
+    // Get the image contents and save it to the uploads directory
+    $image_data = wp_remote_retrieve_body($response);
+    $upload_dir = wp_upload_dir();
+    
+    // Check if the uploads directory is writable
+    if (wp_mkdir_p($upload_dir['path'])) {
+        $file_path = $upload_dir['path'] . '/' . $file_name;
+    } else {
+        $file_path = $upload_dir['basedir'] . '/' . $file_name;
+    }
+    
+    // Save the image data to the file path
+    file_put_contents($file_path, $image_data);
+    
+    // Prepare an array of file information to simulate a file upload
+    $file = array(
+        'name'     => $file_name,
+        'type'     => wp_remote_retrieve_header($response, 'content-type'),
+        'tmp_name' => $file_path,
+        'error'    => 0,
+        'size'     => filesize($file_path),
+    );
+    
+    // Include the necessary WordPress file to handle uploads
+    require_once(ABSPATH . 'wp-admin/includes/file.php');
+    require_once(ABSPATH . 'wp-admin/includes/media.php');
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
+
+    // Upload the image to the media library
+    $attachment_id = media_handle_sideload($file, $post_id);
+
+    // If there was an error uploading the image, handle it
+    if (is_wp_error($attachment_id)) {
+        return false;
+    }
+
+    // Set the uploaded image as the post's featured image
+    set_post_thumbnail($post_id, $attachment_id);
+
+    return $attachment_id; // Return the attachment ID of the image
 }
 
 
@@ -218,6 +282,21 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
             wp_reset_postdata();
             continue;
         }
+
+        // Check if secondaryTags contains at least one accessibility
+        $allowed_terms = ['AD', 'CC', 'OPEN CAP', 'SS'];
+        $has_allowed_term = false;
+        if (!empty($session['secondaryTags'])) {
+            foreach ($session['secondaryTags'] as $tag) {
+                if (in_array($tag, $allowed_terms)) {
+                    $has_allowed_term = true;
+                    break;
+                }
+            }
+        }
+        if (!$has_allowed_term) {
+            continue;
+        }
         
         $movie_post = $movie_query->posts[0]; // Get the movie post object
         $movie_post_id = $movie_post->ID; // Get the movie post ID
@@ -232,22 +311,33 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         
         // Insert the session post and get the post ID
         $session_post_id = wp_insert_post( $post_data );
+
+        list($session_date, $session_time) = explode('T', $session['date']);
         
         if ( $session_post_id ) {
             // Store additional metadata including the session ID
             update_post_meta( $session_post_id, 'session_id', $session_id ); // Store session ID to prevent duplicates
             update_post_meta( $session_post_id, 'cinema_id', sanitize_text_field( $session['cinemaId'] ) );
-            update_post_meta( $session_post_id, 'session_date', sanitize_text_field( $session['date'] ) );
+            update_post_meta( $session_post_id, 'session_date', sanitize_text_field( $session_date . " " . $session_time  ) );
             update_post_meta( $session_post_id, 'utc_date', sanitize_text_field( $session['utcDate'] ) );
-            update_post_meta( $session_post_id, 'booking_link', esc_url( 'https://hoyts.com.au' . $session['link'] ) );
+            update_post_meta( $session_post_id, 'link', esc_url( 'https://hoyts.com.au' . $session['link'] ) );
             
             // Assign secondary tags to the Accessibility taxonomy
             if ( !empty( $session['secondaryTags'] ) ) {
-                error_log("Secondary tags found for session $session_id -> " . implode( ', ', $session['secondaryTags'] )); 
-                $accessibility_terms = array_map( 'sanitize_text_field', $session['secondaryTags'] );
-                wp_set_post_terms( $session_post_id, $accessibility_terms, 'accessibility' );
+                $allowed_terms = ['AD', 'CC', 'OPEN CAP', 'SS'];
+                $filtered_tags = array_filter($session['secondaryTags'], function($tag) use ($allowed_terms) {
+                    return in_array($tag, $allowed_terms);
+                });
+
+                if (!empty($filtered_tags)) {
+                    error_log("Secondary tags found for session $session_id -> " . implode(', ', $filtered_tags)); 
+                    foreach ($filtered_tags as $tag) {
+                        $sanitized_tag = sanitize_text_field($tag);
+                        wp_set_post_terms($session_post_id, $sanitized_tag, 'accessibility', true);
+                    }
+                }
             }
-            // Assign 'VIC' to the state taxonomy if not already assigned
+            // Assign the state to the state taxonomy if not already assigned
             if ( !has_term( 'VIC', 'state', $session_post_id ) ) {
                 wp_set_object_terms( $session_post_id, $state, 'state', true );
             }

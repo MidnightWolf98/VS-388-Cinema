@@ -2,7 +2,7 @@
 /*
 Plugin Name: Movies & Sessions Fetcher
 Description: A plugin that fetches movies and their sessions from external cinema APIS and inserts them as custom posts, and keeps these movies up to date with ratings and now showing or not.
-Version: 0.04 Beta
+Version: 0.06.2 Beta
 Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm Mihir Anand
 */
 
@@ -31,9 +31,9 @@ require_once plugin_dir_path(__FILE__) . 'hoyts-module.php';
 function movie_importer_admin_page() {
     ?>
     <div class="wrap">
-        <h1>Hoyts Movie Importer</h1>
+        <h1>Movie & Session Fetcher</h1>
         <form method="post" action="">
-            <input type="submit" name="import_movies" class="button button-primary" value="Import Movies Now">
+            <input type="submit" name="import_movies" class="button button-primary" value="Manually Fetch Movies & Sessions Now">
         </form>
     </div>
     <?php
