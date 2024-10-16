@@ -130,7 +130,7 @@ function hoyts_fetch_and_insert_movies() {
 
         if ( !empty( $movie['posterImage'] ) ) {
             // Upload the movie poster from the URL
-            $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['poster'], $post_id );
+            $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'], $post_id );
             
             if ( $poster_id ) {
                 // If the poster was uploaded successfully, set it as the featured image
