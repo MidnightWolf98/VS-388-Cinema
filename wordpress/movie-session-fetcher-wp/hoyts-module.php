@@ -46,7 +46,7 @@ $venues = [
         'suburb' => 'Northland',
         'state' => 'VIC'
     ], (object) [
-        'code' => 'VDGCIN',
+        'code' => 'VGDCIN',
         'suburb' => 'Victoria Gardens',
         'state' => 'VIC'
     ], (object) [
@@ -246,6 +246,13 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
     
     if ( is_wp_error( $response ) ) {
         error_log("Error in Session API Request", $response->get_error_message());
+        return;
+    }
+
+    // Fail safe, if a cinema is added incorrectly, skips
+    $response_code = wp_remote_retrieve_response_code( $response );
+    if ( $response_code >= 400 ) {
+        error_log("HTTP Error in Session API Request: " . $response_code);
         return;
     }
     
