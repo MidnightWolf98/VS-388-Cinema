@@ -2,7 +2,7 @@
 /*
 Plugin Name: Movies & Sessions Fetcher
 Description: A plugin that fetches movies and their sessions from external cinema APIS and inserts them as custom posts, and keeps these movies up to date with ratings and now showing or not.
-Version: 0.06.83 Beta
+Version: 0.06.84 Beta
 Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir Anand
 */
 
@@ -71,13 +71,15 @@ function movie_importer_admin_page() {
     <div class="wrap">
         <h1>Movie & Session Fetcher</h1>
 
+        <hr>
+        
         <?php
             // Display the next scheduled run time
             $next_run = wp_next_scheduled('movie_importer_cron_job');
             if ($next_run) {
-                echo '<p>Next scheduled run: ' . date('Y-m-d H:i:s', $next_run) . '</p>';
+                echo '<p>Next scheduled run: <strong>' . date('Y-m-d H:i:s', $next_run) . '</p>';
             } else {
-                echo '<p>Next scheduled run: Not scheduled</p>';
+                echo '<p>Next scheduled run: <strong>Not scheduled</strong></p>';
             }
         ?>
 
@@ -85,13 +87,15 @@ function movie_importer_admin_page() {
             // Display the last run time
             $last_run = get_option('movie_importer_last_run');
             if ($last_run) {
-                echo '<p>Last run: ' . date('Y-m-d H:i:s', $last_run) . '</p>';
+                echo 'p>Last run: <strong>' . date('Y-m-d H:i:s', $last_run) . '</p>';
             } else {
-                echo '<p>Last run: Never</p>';
+                echo '<p>Last run: <strong>Never</strong></p>';
             }
         ?>
 
-        <p>Click the buttons below to manually fetch movies and sessions from the external cinema APIs.</p>
+        <hr>
+
+        <h3>Click the buttons below to manually fetch movies and sessions from the external cinema APIs.</h3>
         <form method="post" action="">
             <input type="submit" name="run_all" class="button button-primary" value="Run All Now">
         </form>
