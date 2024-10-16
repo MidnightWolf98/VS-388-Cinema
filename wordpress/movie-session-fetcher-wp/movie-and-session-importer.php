@@ -70,6 +70,27 @@ function movie_importer_admin_page() {
     </style>
     <div class="wrap">
         <h1>Movie & Session Fetcher</h1>
+
+        <?php
+            // Display the next scheduled run time
+            $next_run = wp_next_scheduled('movie_importer_cron_job');
+            if ($next_run) {
+                echo '<p>Next scheduled run: ' . date('Y-m-d H:i:s', $next_run) . '</p>';
+            } else {
+                echo '<p>Next scheduled run: Not scheduled</p>';
+            }
+        ?>
+
+        <?php
+            // Display the last run time
+            $last_run = get_option('movie_importer_last_run');
+            if ($last_run) {
+                echo '<p>Last run: ' . date('Y-m-d H:i:s', $last_run) . '</p>';
+            } else {
+                echo '<p>Last run: Never</p>';
+            }
+        ?>
+
         <p>Click the buttons below to manually fetch movies and sessions from the external cinema APIs.</p>
         <form method="post" action="">
             <input type="submit" name="run_all" class="button button-primary" value="Run All Now">
@@ -84,7 +105,7 @@ function movie_importer_admin_page() {
         <label><span style="color: red;">Note:</span> Please import movies before importing sessions.</label><br>
             <input type="submit" name="import_sessions" class="button button-primary" value="Manually Fetch Sessions Now">
         </form>
-        
+
         <form method="post" action="">
             <input type="submit" name="run_cleanup" class="button button-primary" value="Manually Cleanup Old Sessions Now">
         </form>
