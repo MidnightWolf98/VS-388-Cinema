@@ -8,6 +8,7 @@ Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir An
 
 // Import Cinema Modules Here
 require_once plugin_dir_path(__FILE__) . 'hoyts-module.php';
+require_once plugin_dir_path(__FILE__) . 'village-module.php';
 require_once plugin_dir_path(__FILE__) . 'helper-functions.php';
 
 // Schedule the event on plugin activation
@@ -69,11 +70,15 @@ function movie_importer_admin_page() {
     </style>
     <div class="wrap">
         <h1>Movie & Session Fetcher</h1>
+        <p>Click the buttons below to manually fetch movies and sessions from the external cinema APIs.</p>
+        <form method="post" action="">
+            <input type="submit" name="run_all" class="button button-primary" value="Run All Now">
+        </form>
+        <line>
+
         <form method="post" action="">
             <input type="submit" name="import_movies" class="button button-primary" value="Manually Fetch Movies Now">
         </form>
-        <line>
-        
         <form method="post" action="">
         <label><span style="color: red;">Note:</span> Please import movies before importing sessions.</label><br>
             <input type="submit" name="import_sessions" class="button button-primary" value="Manually Fetch Sessions Now">
@@ -88,6 +93,10 @@ function movie_importer_admin_page() {
     //     hoyts_fetch_all_movies_and_sessions();
     //     echo '<div class="notice notice-success is-dismissible"><p>Movies & sessions imported successfully!</p></div>';
     // }
+    if ( isset( $_POST['run_all'] ) ) {
+        run_all_modules();
+        echo '<div class="notice notice-success is-dismissible"><p>Fech and Cleanup Completed Successfully!</p></div>';
+    }
     if ( isset( $_POST['import_movies'] ) ) {
             hoyts_fetch_and_insert_movies();
             echo '<div class="notice notice-success is-dismissible"><p>Movies Imported Successfully!</p></div>';
@@ -103,8 +112,19 @@ function movie_importer_admin_page() {
 }
 
 // Add the admin menu item
+// function movie_importer_menu() {
+//     add_menu_page( 'Movie & Session Fetcher', 'Movie & Session Fetcher', 'manage_options', 'movie-importer', 'movie_importer_admin_page' );
+// }
+// add_action( 'admin_menu', 'movie_importer_menu' );
 function movie_importer_menu() {
-    add_menu_page( 'Movie & Session Fetcher', 'Movie & Session Fetcher', 'manage_options', 'movie-importer', 'movie_importer_admin_page' );
+    add_menu_page(
+        'Movie & Session Fetcher', // Page title
+        'Movie & Session Fetcher', // Menu title
+        'manage_options',          // Capability
+        'movie-importer',          // Menu slug
+        'movie_importer_admin_page', // Function to display the page
+        'dashicons-video-alt2'     // Dashicon for the menu item
+    );
 }
 add_action( 'admin_menu', 'movie_importer_menu' );
 

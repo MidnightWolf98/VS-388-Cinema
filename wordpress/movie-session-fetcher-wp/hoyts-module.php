@@ -237,7 +237,9 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
     // Increase time limit to 5 minutes for this operation
     set_time_limit(300);
 
-    error_log("Tyring to Fetch sessions for $venue_code in $suburb, $state");
+    // For Debug: logs
+    //error_log("Tyring to Fetch sessions for $venue_code in $suburb, $state");
+
     // Define the API endpoint for sessions
     $api_url = 'https://apim.hoyts.com.au/au/cinemaapi/api/sessions/' . $venue_code; // Replace with the actual API URL for sessions
     
@@ -361,7 +363,6 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
                 });
             
                 if (!empty($filtered_tags)) {
-                    error_log("Secondary tags found for session $session_id -> " . implode(', ', $filtered_tags)); 
                     foreach ($filtered_tags as $tag) {
                         $sanitized_tag = sanitize_text_field($tag);
                         wp_set_post_terms($session_post_id, $sanitized_tag, 'accessibility', true);

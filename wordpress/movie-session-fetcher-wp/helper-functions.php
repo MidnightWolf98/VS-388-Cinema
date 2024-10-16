@@ -7,5 +7,9 @@ function delete_old_sessions($wpdb) {
     $wpdb->query("DELETE FROM wp_movie_sessions WHERE session_date < DATE_SUB(CURDATE(), INTERVAL 1 DAY)");
 }
 
+function insert_movie(/*add variables*/){}
+
+function insert_session(/*add variables*/){}
+
 
 ?>
