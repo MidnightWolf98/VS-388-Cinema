@@ -105,6 +105,12 @@ function hoyts_fetch_and_insert_movies() {
             wp_reset_postdata();
             continue;
         }
+
+        if ( empty( $movie['releaseDate'] ) ) {
+            // skip movies that don't have a release date (these are speculated movies w/ no poster)
+            // even further before coming soon movies. 
+            continue;
+        }
         
         // Prepare the post data
         $post_data = array(
