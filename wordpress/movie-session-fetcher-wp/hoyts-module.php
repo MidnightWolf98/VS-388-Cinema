@@ -57,8 +57,8 @@ $venues = [
     //ADD REST LATER
 ];
 
+// Run everything
 function hoyts_fetch_all_movies_and_sessions() {
-    // Fetch movies from Hoyts
     hoyts_fetch_and_insert_movies();
     hoyts_fetch_and_insert_sessions_all_venues();
 }
@@ -161,7 +161,7 @@ function hoyts_fetch_and_insert_movies() {
 }
 
 // Get Poster for movie (upload image from URL locally, USE AT OWN DISCRETION)
-// CURRENT DEAVTICATED -> USES TOO MUCH RESOURCES! 
+// CURRENTLY DEAVTICATED -> USES TOO MUCH RESOURCES! 
 // CHANGED TO JSUT ADD LINK FOR IMAGE TO MOVIE
 // function upload_image_from_url($image_url, $post_id) {
 //     // Get the file name of the image
@@ -347,12 +347,12 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
             update_post_meta( $session_post_id, 'link', esc_url( 'https://hoyts.com.au' . $session['link'] ) );
             
             // Assign secondary tags to the Accessibility taxonomy
-            if ( !empty( $session['secondaryTags'] ) ) {
+            if ( !empty( $session['secondaryTags'] ) && is_array($session['secondaryTags']) ) {
                 $allowed_terms = ['AD', 'CC', 'OPEN CAP', 'SS'];
                 $filtered_tags = array_filter($session['secondaryTags'], function($tag) use ($allowed_terms) {
                     return in_array($tag, $allowed_terms);
                 });
-
+            
                 if (!empty($filtered_tags)) {
                     error_log("Secondary tags found for session $session_id -> " . implode(', ', $filtered_tags)); 
                     foreach ($filtered_tags as $tag) {
@@ -361,6 +361,7 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
                     }
                 }
             }
+
             // Assign the state to the state taxonomy if not already assigned
             if ( !has_term( 'VIC', 'state', $session_post_id ) ) {
                 wp_set_object_terms( $session_post_id, $state, 'state', true );

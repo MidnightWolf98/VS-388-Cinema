@@ -2,43 +2,66 @@
 /*
 Plugin Name: Movies & Sessions Fetcher
 Description: A plugin that fetches movies and their sessions from external cinema APIS and inserts them as custom posts, and keeps these movies up to date with ratings and now showing or not.
-Version: 0.06.4 Beta
-Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm Mihir Anand
+Version: 0.06.7 Beta
+Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir Anand
 */
 
-// Import Cinema Modules
+// Import Cinema Modules Here
 require_once plugin_dir_path(__FILE__) . 'hoyts-module.php';
+require_once plugin_dir_path(__FILE__) . 'helper-functions.php';
 
-// // Schedule the event on plugin activation
-// function movie_importer_schedule_event() {
-//     if ( ! wp_next_scheduled( 'movie_importer_cron_job' ) ) {
-//         wp_schedule_event( time(), 'daily', 'movie_importer_cron_job' );
-//     }
-// }
-// add_action( 'wp', 'movie_importer_schedule_event' );
+// Schedule the event on plugin activation
+function movie_importer_schedule_event() {
+    if ( ! wp_next_scheduled( 'movie_importer_cron_job' ) ) {
+        wp_schedule_event( time(), 'daily', 'movie_importer_cron_job' );
+    }
+}
+register_activation_hook( __FILE__, 'movie_importer_schedule_event' );
 
-// // Clear the event on plugin deactivation
-// function movie_importer_clear_scheduled_event() {
-//     $timestamp = wp_next_scheduled( 'movie_importer_cron_job' );
-//     wp_unschedule_event( $timestamp, 'movie_importer_cron_job' );
-// }
-// register_deactivation_hook( __FILE__, 'movie_importer_clear_scheduled_event' );
+// Clear the event on plugin deactivation
+function movie_importer_clear_scheduled_event() {
+    $timestamp = wp_next_scheduled( 'movie_importer_cron_job' );
+    wp_unschedule_event( $timestamp, 'movie_importer_cron_job' );
+}
+register_deactivation_hook( __FILE__, 'movie_importer_clear_scheduled_event' );
 
-// // Hook the function to the scheduled event
-// add_action( 'movie_importer_cron_job', 'hoyts_fetch_and_insert_movies' );
+// Hook the function to the scheduled event
+add_action( 'movie_importer_cron_job', 'run_all_modules' );
 
 // Manually trigger the movie import from the WordPress dashboard
 function movie_importer_admin_page() {
+    global $wpdb;
     ?>
+    <style>
+        .wrap {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        line {
+            margin-bottom: 20px;
+        }
+    </style>
     <div class="wrap">
         <h1>Movie & Session Fetcher</h1>
         <form method="post" action="">
             <input type="submit" name="import_movies" class="button button-primary" value="Manually Fetch Movies Now">
         </form>
+        <line>
+        
         <form method="post" action="">
+        <label><span style="color: red;">Note:</span> Please import movies before importing sessions.</label><br>
             <input type="submit" name="import_sessions" class="button button-primary" value="Manually Fetch Sessions Now">
         </form>
+        <form method="post" action="">
+        <label><span style="color: red;">Note:</span> Please import movies before importing sessions.</label><br>
+            <input type="submit" name="run_cleanup" class="button button-primary" value="Manually Cleanup Old Sessions Now">
+        </form>
     </div>
+    
     <?php
     // if ( isset( $_POST['import_movies'] ) ) {
     //     hoyts_fetch_all_movies_and_sessions();
@@ -46,20 +69,35 @@ function movie_importer_admin_page() {
     // }
     if ( isset( $_POST['import_movies'] ) ) {
             hoyts_fetch_and_insert_movies();
-            echo '<div class="notice notice-success is-dismissible"><p>Movies & sessions imported successfully!</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>Movies imported successfully!</p></div>';
         }
     if ( isset( $_POST['import_sessions'] ) ) {
         hoyts_fetch_and_insert_sessions_all_venues();
+        echo '<div class="notice notice-success is-dismissible"><p>Movies & sessions imported successfully!</p></div>';
+    }
+    if ( isset( $_POST['run_cleanup'] ) ) {
+        delete_old_sessions($wpdb);
         echo '<div class="notice notice-success is-dismissible"><p>Movies & sessions imported successfully!</p></div>';
     }
 }
 
 // Add the admin menu item
 function movie_importer_menu() {
-    add_menu_page( 'Hoyts Movie Importer', 'Hoyts Movie Importer', 'manage_options', 'movie-importer', 'movie_importer_admin_page' );
+    add_menu_page( 'Movie & Session Fetcher', 'Movie & Session Fetcher', 'manage_options', 'movie-importer', 'movie_importer_admin_page' );
 }
 add_action( 'admin_menu', 'movie_importer_menu' );
 
+// ADD ALL MODULES TO RUN HERE (MAKE SURE IN MODULE< ITS A FUNCTION THAT RUNS ALL MOVIES AND SESSIONS)
+function run_all_modules(){
+    //delcare global for cleanup
+    global $wpdb;
+
+    // Import from modules here
+    hoyts_fetch_all_movies_and_sessions();
+    
+    // Run Cleanup
+    delete_old_sessions($wpdb);
+}
 
 
 
