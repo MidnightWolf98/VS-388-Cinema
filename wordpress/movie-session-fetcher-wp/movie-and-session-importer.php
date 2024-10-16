@@ -2,7 +2,7 @@
 /*
 Plugin Name: Movies & Sessions Fetcher
 Description: A plugin that fetches movies and their sessions from external cinema APIS and inserts them as custom posts, and keeps these movies up to date with ratings and now showing or not.
-Version: 0.06.7 Beta
+Version: 0.06.8 Beta
 Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir Anand
 */
 
@@ -134,6 +134,7 @@ function register_movie_post_type() {
         'has_archive'        => true,
         'hierarchical'       => false,
         'menu_position'      => null,
+        'menu_icon'          => 'dashicons-video-alt2', // Film camera icon
         'supports'           => array( 'title', 'editor', 'custom-fields' ),
     );
 
@@ -171,6 +172,7 @@ function register_session_post_type() {
         'has_archive'        => true,
         'hierarchical'       => true, // Set this to true to allAow parent-child relationship
         'menu_position'      => null,
+        'menu_icon'          => 'dashicons-format-video', // Film snip with play button icon
         'supports'           => array( 'title', 'editor', 'page-attributes', 'custom-fields' ),
     );
 
