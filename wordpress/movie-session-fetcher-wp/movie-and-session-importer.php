@@ -33,12 +33,23 @@ function movie_importer_admin_page() {
     <div class="wrap">
         <h1>Movie & Session Fetcher</h1>
         <form method="post" action="">
-            <input type="submit" name="import_movies" class="button button-primary" value="Manually Fetch Movies & Sessions Now">
+            <input type="submit" name="import_movies" class="button button-primary" value="Manually Fetch Movies Now">
+        </form>
+        <form method="post" action="">
+            <input type="submit" name="import_sessions" class="button button-primary" value="Manually Fetch Sessions Now">
         </form>
     </div>
     <?php
+    // if ( isset( $_POST['import_movies'] ) ) {
+    //     hoyts_fetch_all_movies_and_sessions();
+    //     echo '<div class="notice notice-success is-dismissible"><p>Movies & sessions imported successfully!</p></div>';
+    // }
     if ( isset( $_POST['import_movies'] ) ) {
-        hoyts_fetch_all_movies_and_sessions();
+            hoyts_fetch_and_insert_movies();
+            echo '<div class="notice notice-success is-dismissible"><p>Movies & sessions imported successfully!</p></div>';
+        }
+    if ( isset( $_POST['import_sessions'] ) ) {
+        hoyts_fetch_and_insert_sessions_all_venues();
         echo '<div class="notice notice-success is-dismissible"><p>Movies & sessions imported successfully!</p></div>';
     }
 }
