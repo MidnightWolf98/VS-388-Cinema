@@ -79,10 +79,12 @@ function movie_importer_admin_page() {
         <form method="post" action="">
             <input type="submit" name="import_movies" class="button button-primary" value="Manually Fetch Movies Now">
         </form>
+
         <form method="post" action="">
         <label><span style="color: red;">Note:</span> Please import movies before importing sessions.</label><br>
             <input type="submit" name="import_sessions" class="button button-primary" value="Manually Fetch Sessions Now">
         </form>
+        
         <form method="post" action="">
             <input type="submit" name="run_cleanup" class="button button-primary" value="Manually Cleanup Old Sessions Now">
         </form>
