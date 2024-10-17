@@ -71,7 +71,7 @@ function hoyts_fetch_all_movies_and_sessions() {
 function hoyts_fetch_and_insert_movies() {
 
     // Increase time limit to 5 minutes for this operation
-    set_time_limit(300);
+    set_time_limit(480);
 
     // Define the API endpoint
     $api_url = 'https://apim.hoyts.com.au/au/cinemaapi/api/movies'; // Replace with your actual API URL
@@ -387,8 +387,8 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
             
             wp_set_object_terms( $session_post_id, $session_date, 'date', true );
             wp_set_object_terms( $session_post_id, $session_time, 'time', true );
-            wp_set_object_terms( $session_post_id, $session['utcDate'], 'utc_date', true );
-            wp_set_object_terms( $session_post_id, $session['utcTime'], 'utc_time', true );
+            wp_set_object_terms( $session_post_id, $session_utc_date, 'utc_date', true );
+            wp_set_object_terms( $session_post_id, $session_utc_time, 'utc_time', true );
 
         }
         
