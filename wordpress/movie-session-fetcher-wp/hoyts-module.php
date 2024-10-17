@@ -365,7 +365,7 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
                 if (!empty($filtered_tags)) {
                     foreach ($filtered_tags as $tag) {
                         $sanitized_tag = sanitize_text_field($tag);
-                        wp_set_post_terms($session_post_id, $sanitized_tag, 'accessibility', true);
+                        wp_set_object_terms($session_post_id, $sanitized_tag, 'accessibility', true);
                     }
                 }
             }

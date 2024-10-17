@@ -2,7 +2,7 @@
 /*
 Plugin Name: Movies & Sessions Fetcher
 Description: A plugin that fetches movies and their sessions from external cinema APIS and inserts them as custom posts, and keeps these movies up to date with ratings and now showing or not.
-Version: 0.06.84 Beta
+Version: 0.06.86 Beta
 Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir Anand
 */
 
@@ -57,14 +57,14 @@ function movie_importer_admin_page() {
     ?>
     <style>
         .wrap {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
         form {
             margin-bottom: 20px;
         }
-        line {
+        hr {
             margin-bottom: 20px;
         }
     </style>
@@ -84,7 +84,7 @@ function movie_importer_admin_page() {
         ?>
 
         <?php
-            // Display the last run time
+            // Display the last run time DEOSNT WORK RN FIX LATER! 
             $last_run = get_option('movie_importer_last_run');
             if ($last_run) {
                 echo 'p>Last run: <strong>' . date('Y-m-d H:i:s', $last_run) . '</p>';
@@ -97,6 +97,7 @@ function movie_importer_admin_page() {
 
         <h3>Click the buttons below to manually fetch movies and sessions from the external cinema APIs.</h3>
         <form method="post" action="">
+        <label><span style="color: orange;">Note:</span> This can take a while.</label><br>
             <input type="submit" name="run_all" class="button button-primary" value="Run All Now">
         </form>
         <line>
@@ -122,7 +123,7 @@ function movie_importer_admin_page() {
     // }
     if ( isset( $_POST['run_all'] ) ) {
         run_all_modules();
-        echo '<div class="notice notice-success is-dismissible"><p>Fech and Cleanup Completed Successfully!</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>Fetch and Cleanup Completed Successfully!</p></div>';
     }
     if ( isset( $_POST['import_movies'] ) ) {
             hoyts_fetch_and_insert_movies();
