@@ -110,15 +110,9 @@ function hoyts_fetch_and_insert_movies() {
             continue;
         }
 
-        if ( empty( $movie['releaseDate'] ) ) {
-            // skip movies that don't have a release date (these are speculated movies w/ no poster)
+        if ( empty( $movie['releaseDate'] ) || empty($movie['posterImage']) ) {
+            // skip movies that don't have a release date or no poster (these are speculated movies w/ no poster)
             // even further before coming soon movies. 
-            continue;
-        }
-
-        //skip movies with no poster
-        if (empty($movie['posterImage'])) {
-            // skip movies that don't have genres
             continue;
         }
         
