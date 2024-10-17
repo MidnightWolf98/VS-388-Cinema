@@ -139,22 +139,22 @@ function hoyts_fetch_and_insert_movies() {
         }
         
         // LOCALLY UPLOAD POSTER IMAGE FROM URL (CURRENTLY DEACTIVATED)!!!
-        // if ( !empty( $movie['posterImage'] ) ) {
-        //     // Upload the movie poster from the URL
-        //     $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'], $post_id );
-            
-        //     if ( $poster_id ) {
-        //         // If the poster was uploaded successfully, set it as the featured image
-        //         set_post_thumbnail( $post_id, $poster_id );
-        //     }
-
-        //     update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'] ) );
-        // }
-
         if ( !empty( $movie['posterImage'] ) ) {
             // Upload the movie poster from the URL
+            $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'], $post_id );
+            
+            if ( $poster_id ) {
+                // If the poster was uploaded successfully, set it as the featured image
+                set_post_thumbnail( $post_id, $poster_id );
+            }
+
             update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'] ) );
         }
+
+        // if ( !empty( $movie['posterImage'] ) ) {
+        //     // Upload the movie poster from the URL
+        //     update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'] ) );
+        // }
         
         wp_reset_postdata(); // Reset the WP_Query data
     }
@@ -163,58 +163,58 @@ function hoyts_fetch_and_insert_movies() {
 // Get Poster for movie (upload image from URL locally, USE AT OWN DISCRETION)
 // CURRENTLY DEAVTICATED -> USES TOO MUCH RESOURCES! 
 // CHANGED TO JSUT ADD LINK FOR IMAGE TO MOVIE
-// function upload_image_from_url($image_url, $post_id) {
-//     // Get the file name of the image
-//     $file_name = basename($image_url);
+function upload_image_from_url($image_url, $post_id) {
+    // Get the file name of the image
+    $file_name = basename($image_url);
     
-//     // Download the image from the URL
-//     $response = wp_remote_get($image_url);
+    // Download the image from the URL
+    $response = wp_remote_get($image_url);
     
-//     if (is_wp_error($response)) {
-//         return false; // Handle error if the image couldn't be downloaded
-//     }
+    if (is_wp_error($response)) {
+        return false; // Handle error if the image couldn't be downloaded
+    }
     
-//     // Get the image contents and save it to the uploads directory
-//     $image_data = wp_remote_retrieve_body($response);
-//     $upload_dir = wp_upload_dir();
+    // Get the image contents and save it to the uploads directory
+    $image_data = wp_remote_retrieve_body($response);
+    $upload_dir = wp_upload_dir();
     
-//     // Check if the uploads directory is writable
-//     if (wp_mkdir_p($upload_dir['path'])) {
-//         $file_path = $upload_dir['path'] . '/' . $file_name;
-//     } else {
-//         $file_path = $upload_dir['basedir'] . '/' . $file_name;
-//     }
+    // Check if the uploads directory is writable
+    if (wp_mkdir_p($upload_dir['path'])) {
+        $file_path = $upload_dir['path'] . '/' . $file_name;
+    } else {
+        $file_path = $upload_dir['basedir'] . '/' . $file_name;
+    }
     
-//     // Save the image data to the file path
-//     file_put_contents($file_path, $image_data);
+    // Save the image data to the file path
+    file_put_contents($file_path, $image_data);
     
-//     // Prepare an array of file information to simulate a file upload
-//     $file = array(
-//         'name'     => $file_name,
-//         'type'     => wp_remote_retrieve_header($response, 'content-type'),
-//         'tmp_name' => $file_path,
-//         'error'    => 0,
-//         'size'     => filesize($file_path),
-//     );
+    // Prepare an array of file information to simulate a file upload
+    $file = array(
+        'name'     => $file_name,
+        'type'     => wp_remote_retrieve_header($response, 'content-type'),
+        'tmp_name' => $file_path,
+        'error'    => 0,
+        'size'     => filesize($file_path),
+    );
     
-//     // Include the necessary WordPress file to handle uploads
-//     require_once(ABSPATH . 'wp-admin/includes/file.php');
-//     require_once(ABSPATH . 'wp-admin/includes/media.php');
-//     require_once(ABSPATH . 'wp-admin/includes/image.php');
+    // Include the necessary WordPress file to handle uploads
+    require_once(ABSPATH . 'wp-admin/includes/file.php');
+    require_once(ABSPATH . 'wp-admin/includes/media.php');
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
 
-//     // Upload the image to the media library
-//     $attachment_id = media_handle_sideload($file, $post_id);
+    // Upload the image to the media library
+    $attachment_id = media_handle_sideload($file, $post_id);
 
-//     // If there was an error uploading the image, handle it
-//     if (is_wp_error($attachment_id)) {
-//         return false;
-//     }
+    // If there was an error uploading the image, handle it
+    if (is_wp_error($attachment_id)) {
+        return false;
+    }
 
-//     // Set the uploaded image as the post's featured image
-//     set_post_thumbnail($post_id, $attachment_id);
+    // Set the uploaded image as the post's featured image
+    set_post_thumbnail($post_id, $attachment_id);
 
-//     return $attachment_id; // Return the attachment ID of the image
-// }
+    return $attachment_id; // Return the attachment ID of the image
+}
 
 
 // ********************************************************************************
