@@ -343,5 +343,110 @@ function register_session_taxonomies() {
     );
 
     register_taxonomy( 'cinema', array( 'session' ), $args_cinema );
+
+    // Date Taxonomy
+    $labels_date = array(
+        'name'              => _x( 'Dates', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Date', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Dates' ),
+        'all_items'         => __( 'All Dates' ),
+        'parent_item'       => __( 'Parent Date' ),
+        'parent_item_colon' => __( 'Parent Date:' ),
+        'edit_item'         => __( 'Edit Date' ),
+        'update_item'       => __( 'Update Date' ),
+        'add_new_item'      => __( 'Add New Date' ),
+        'new_item_name'     => __( 'New Date Name' ),
+        'menu_name'         => __( 'Date' ),
+    );
+
+    $args_date = array(
+        'hierarchical'      => false, // Set to false for non-hierarchical taxonomy (e.g., tags)
+        'labels'            => $labels_date,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array( 'slug' => 'date' ),
+    );
+
+    register_taxonomy( 'date', array( 'session' ), $args_date );
+
+    // Time Taxonomy
+    $labels_time = array(
+        'name'              => _x( 'Times', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Time', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Times' ),
+        'all_items'         => __( 'All Times' ),
+        'parent_item'       => __( 'Parent Time' ),
+        'parent_item_colon' => __( 'Parent Time:' ),
+        'edit_item'         => __( 'Edit Time' ),
+        'update_item'       => __( 'Update Time' ),
+        'add_new_item'      => __( 'Add New Time' ),
+        'new_item_name'     => __( 'New Time Name' ),
+        'menu_name'         => __( 'Time' ),
+    );
+
+    $args_time = array(
+        'hierarchical'      => false, // Set to false for non-hierarchical taxonomy (e.g., tags)
+        'labels'            => $labels_time,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array( 'slug' => 'time' ),
+    );
+
+    register_taxonomy( 'time', array( 'session' ), $args_time );
+
+    // UTC Date Taxonomy
+    $labels_utc_date = array(
+        'name'              => _x( 'UTC Dates', 'taxonomy general name' ),
+        'singular_name'     => _x( 'UTC Date', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search UTC Dates' ),
+        'all_items'         => __( 'All UTC Dates' ),
+        'parent_item'       => __( 'Parent UTC Date' ),
+        'parent_item_colon' => __( 'Parent UTC Date:' ),
+        'edit_item'         => __( 'Edit UTC Date' ),
+        'update_item'       => __( 'Update UTC Date' ),
+        'add_new_item'      => __( 'Add New UTC Date' ),
+        'new_item_name'     => __( 'New UTC Date Name' ),
+        'menu_name'         => __( 'UTC Date' ),
+    );
+
+    $args_utc_date = array(
+        'hierarchical'      => false, // Set to false for non-hierarchical taxonomy (e.g., tags)
+        'labels'            => $labels_utc_date,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array( 'slug' => 'utc-date' ),
+    );
+
+    register_taxonomy( 'utc_date', array( 'session' ), $args_utc_date );
+
+    // UTC Time Taxonomy
+    $labels_utc_time = array(
+        'name'              => _x( 'UTC Times', 'taxonomy general name' ),
+        'singular_name'     => _x( 'UTC Time', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search UTC Times' ),
+        'all_items'         => __( 'All UTC Times' ),
+        'parent_item'       => __( 'Parent UTC Time' ),
+        'parent_item_colon' => __( 'Parent UTC Time:' ),
+        'edit_item'         => __( 'Edit UTC Time' ),
+        'update_item'       => __( 'Update UTC Time' ),
+        'add_new_item'      => __( 'Add New UTC Time' ),
+        'new_item_name'     => __( 'New UTC Time Name' ),
+        'menu_name'         => __( 'UTC Time' ),
+    );
+
+    $args_utc_time = array(
+        'hierarchical'      => false, // Set to false for non-hierarchical taxonomy (e.g., tags)
+        'labels'            => $labels_utc_time,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array( 'slug' => 'utc-time' ),
+    );
+
+    register_taxonomy( 'utc_time', array( 'session' ), $args_utc_time );
+
 }
 add_action( 'init', 'register_session_taxonomies' );

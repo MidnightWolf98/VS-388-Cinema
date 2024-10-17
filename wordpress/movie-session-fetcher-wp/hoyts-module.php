@@ -235,7 +235,7 @@ add_action( 'fetch_sessions', 'hoyts_fetch_and_insert_sessions_all_venues' );
 function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
 
     // Increase time limit to 5 minutes for this operation
-    set_time_limit(300);
+    set_time_limit(480);
 
     // For Debug: logs
     //error_log("Tyring to Fetch sessions for $venue_code in $suburb, $state");
@@ -346,6 +346,7 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         $session_post_id = wp_insert_post( $post_data );
 
         list($session_date, $session_time) = explode('T', $session['date']);
+        list($session_utc_date, $session_utc_time) = explode('T', $session['utcDate']);
         
         if ( $session_post_id ) {
             // Store additional metadata including the session ID
@@ -376,13 +377,19 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
             }
 
             // Assign 'Watergardens' to the suburb taxonomy if not already assigned
-            if ( !has_term( 'Watergardens', 'suburb', $session_post_id ) ) {
+            if ( !has_term( $suburb, 'suburb', $session_post_id ) ) {
                 wp_set_object_terms( $session_post_id, $suburb, 'suburb', true );
             }
 
             if ( !has_term( 'Hoyts', 'cinema', $session_post_id ) ) {
                 wp_set_object_terms( $session_post_id, 'Hoyts', 'cinema', true );
             }
+            
+            wp_set_object_terms( $session_post_id, $session_date, 'date', true );
+            wp_set_object_terms( $session_post_id, $session_time, 'time', true );
+            wp_set_object_terms( $session_post_id, $session['utcDate'], 'utc_date', true );
+            wp_set_object_terms( $session_post_id, $session['utcTime'], 'utc_time', true );
+
         }
         
         wp_reset_postdata(); // Reset the WP_Query data
