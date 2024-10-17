@@ -103,6 +103,7 @@ function movie_importer_admin_page() {
         <line>
 
         <form method="post" action="">
+        <label><span style="color: orange;">Note:</span> This can take a while when ran for the first time.</label><br>
             <input type="submit" name="import_movies" class="button button-primary" value="Manually Fetch Movies Now">
         </form>
 

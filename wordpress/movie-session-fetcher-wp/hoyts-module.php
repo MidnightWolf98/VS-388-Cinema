@@ -280,10 +280,14 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         
         $movie_post = $movie_query->posts[0]; // Get the movie post object
         $movie_post_id = $movie_post->ID; // Get the movie post ID
+
+        // extract date and time from the session date
+        list($session_date, $session_time) = explode('T', $session['date']);
+        list($session_utc_date, $session_utc_time) = explode('T', $session['utcDate']);
         
         // Prepare the session post data
         $post_data = array(
-            'post_title'    => 'Hoyts Session For: ' . get_the_title( $movie_post_id ) . ' at ' . $suburb . ', ' . $state, // Title for the session post
+            'post_title'    => 'Session: ' . get_the_title( $movie_post_id ) . ' at Hoyts ' . $suburb . ', ' . $state . ' on ' . $session_date . ' ' . $session_time, // Title for the session post
             'post_status'   => 'publish',
             'post_type'     => 'session', // Custom post type for sessions
             'post_parent'   => $movie_post_id // Set the movie as the parent post
@@ -292,8 +296,7 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         // Insert the session post and get the post ID
         $session_post_id = wp_insert_post( $post_data );
 
-        list($session_date, $session_time) = explode('T', $session['date']);
-        list($session_utc_date, $session_utc_time) = explode('T', $session['utcDate']);
+        
         
         if ( $session_post_id ) {
             // Store additional metadata including the session ID
