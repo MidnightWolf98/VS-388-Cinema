@@ -289,7 +289,7 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         
         // Prepare the session post data
         $post_data = array(
-            'post_title'    => get_the_title( $movie_post_id ) . '"' . ' at Hoyts ' . $suburb . ', ' . $state . ' on ' . $session_date . ' ' . $session_time, // Title for the session post
+            'post_title'    => '"' . get_the_title( $movie_post_id ) . '"' . ' at Hoyts ' . $suburb . ', ' . $state . ' on ' . $session_date . ' ' . $session_time, // Title for the session post
             'post_status'   => 'publish',
             'post_type'     => 'session', // Custom post type for sessions
             'post_parent'   => $movie_post_id // Set the movie as the parent post
