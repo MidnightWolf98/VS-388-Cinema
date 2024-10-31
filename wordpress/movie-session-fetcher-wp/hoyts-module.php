@@ -121,7 +121,7 @@ function hoyts_fetch_and_insert_movies() {
         // Prepare the post data
         $post_data = array(
             'post_title'    => $movie_title,
-            'post_content'  => sanitize_text_field( $movie_html ),
+            'post_content'  => $movie_html,
             'post_status'   => 'publish',
             'post_type'     => 'movie', // Custom post type for movies
         );
