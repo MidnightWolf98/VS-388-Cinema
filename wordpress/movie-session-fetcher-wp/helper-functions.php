@@ -152,27 +152,8 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
 
     $html .= '<p><strong>Genres:</strong> ' . $genres . '</p>';
     $html .= '<p><strong>Rating:</strong> ' . $rating . '</p>';
-    $html .= '<p><a href="' . $link . '" target="_blank" class="more-info-button">More Info</a></p>';
+    $html .= '<p><a href="' . $link . '" target="_blank">More Info</a></p>';
     $html .= '</div>';
-
-    // Add CSS styles for the button
-    $html .= '<style>
-        .more-info-button {
-            display: inline-block;
-            padding: 10px 20px;
-            font-size: 16px;
-            color: #fff;
-            background-color: #0073aa;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
-            text-align: center;
-            cursor: pointer;
-        }
-        .more-info-button:hover {
-            background-color: #005177;
-        }
-    </style>';
 
     return $html;
 }
