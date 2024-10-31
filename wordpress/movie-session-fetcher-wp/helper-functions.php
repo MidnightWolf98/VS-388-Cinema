@@ -129,4 +129,28 @@ function attach_accessibility_to_movie($movie_id) {
     }
 }
 
+function generate_movie_html($movie_title, $summary, $release_date, $runtime, $genres, $rating, $link) {
+    // Sanitize the input fields
+    $movie_title = sanitize_text_field($movie_title);
+    $summary = sanitize_text_field($summary);
+    $release_date = sanitize_text_field($release_date);
+    $runtime = intval($runtime);
+    $genres = implode(', ', array_map('sanitize_text_field', $genres));
+    $rating = sanitize_text_field($rating);
+    $link = esc_url($link);
+
+    // Generate the HTML content
+    $html = '<div class="movie">';
+    $html .= '<h2>' . $movie_title . '</h2>';
+    $html .= '<p><strong>Summary:</strong> ' . $summary . '</p>';
+    $html .= '<p><strong>Release Date:</strong> ' . $release_date . '</p>';
+    $html .= '<p><strong>Runtime:</strong> ' . $runtime . ' minutes</p>';
+    $html .= '<p><strong>Genres:</strong> ' . $genres . '</p>';
+    $html .= '<p><strong>Rating:</strong> ' . $rating . '</p>';
+    $html .= '<p><a href="' . $link . '" target="_blank">Book Here</a></p>';
+    $html .= '</div>';
+
+    return $html;
+}
+
 ?>

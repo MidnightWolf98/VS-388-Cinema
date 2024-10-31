@@ -115,11 +115,13 @@ function hoyts_fetch_and_insert_movies() {
             // even further before coming soon movies. 
             continue;
         }
+
+        $movie_html = generate_movie_html( $movie_title, $movie['summary'], $movie['releaseDate'], $movie['runtime']['minutes'], $movie['genres'], $movie['rating']['id'], 'https://hoyts.com.au' . $movie['link'] );
         
         // Prepare the post data
         $post_data = array(
             'post_title'    => $movie_title,
-            'post_content'  => sanitize_text_field( $movie['summary'] ),
+            'post_content'  => sanitize_text_field( $movie_html ),
             'post_status'   => 'publish',
             'post_type'     => 'movie', // Custom post type for movies
         );
