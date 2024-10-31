@@ -279,9 +279,17 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         if (!$has_allowed_term) {
             continue;
         }
+
+        $allowed_terms = ['AD', 'CC', 'OPEN CAP', 'SS'];
+        $filtered_tags = array_filter($session['secondaryTags'], function($tag) use ($allowed_terms) {
+            return in_array($tag, $allowed_terms);
+        });
         
         $movie_post = $movie_query->posts[0]; // Get the movie post object
         $movie_post_id = $movie_post->ID; // Get the movie post ID
+        
+        //attach accessibilty taxonomies to parent movie
+        add_accessibility_to_movie($movie_post_id, $filtered_tags);
 
         // extract date and time from the session date
         list($session_date, $session_time) = explode('T', $session['date']);
@@ -310,10 +318,6 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
             
             // Assign secondary tags to the Accessibility taxonomy
             if ( !empty( $session['secondaryTags'] ) && is_array($session['secondaryTags']) ) {
-                $allowed_terms = ['AD', 'CC', 'OPEN CAP', 'SS'];
-                $filtered_tags = array_filter($session['secondaryTags'], function($tag) use ($allowed_terms) {
-                    return in_array($tag, $allowed_terms);
-                });
             
                 if (!empty($filtered_tags)) {
                     foreach ($filtered_tags as $tag) {
