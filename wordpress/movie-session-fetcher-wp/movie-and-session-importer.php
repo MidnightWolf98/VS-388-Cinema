@@ -454,4 +454,4 @@ function register_movie_session_taxonomies() {
     register_taxonomy( 'utc_time', array( 'session' ), $args_utc_time );
 
 }
-add_action( 'init', 'register_session_taxonomies' );
+add_action( 'init', 'register_movie_session_taxonomies' );
