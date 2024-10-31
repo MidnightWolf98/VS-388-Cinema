@@ -1,7 +1,7 @@
 <?php
 // HELPER FUNCTIONS INCLUDING:
 
-// 1. Function to delete old sessions
+// 1. Function to delete old sessions FIX FUNCTION, DOESNT WORK! 
 function delete_old_sessions($wpdb) {
     set_time_limit(300);
     $wpdb->query("DELETE FROM wp_movie_sessions WHERE session_date < DATE_SUB(CURDATE(), INTERVAL 1 DAY)");
@@ -81,6 +81,52 @@ function upload_image_from_url($image_url, $post_id) {
     set_post_thumbnail($post_id, $attachment_id);
 
     return $attachment_id; // Return the attachment ID of the image
+}
+
+// module runner entry point for accessibility taxonomy
+function attach_accessibility_to_all_movies() {
+    // Get all movies
+    $args = array(
+        'post_type'   => 'movie',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+    );
+    $movies = get_posts($args);
+
+    // Loop through each movie and call attach_accessibility_to_movie
+    foreach ($movies as $movie) {
+        attach_accessibility_to_movie($movie->ID);
+    }
+}
+
+function attach_accessibility_to_movie($movie_id) {
+    // Get all sessions that are children of the movie
+    $args = array(
+        'post_type'   => 'session',
+        'post_status' => 'publish',
+        'numberposts' => -1,
+        'post_parent' => $movie_id,
+    );
+    $sessions = get_posts($args);
+
+    // Initialize an array to store unique accessibility terms
+    $all_accessibility_terms = array();
+
+    // Loop through each session and get its accessibility terms
+    foreach ($sessions as $session) {
+        $session_accessibility_terms = wp_get_post_terms($session->ID, 'accessibility', array('fields' => 'ids'));
+        if (!is_wp_error($session_accessibility_terms) && !empty($session_accessibility_terms)) {
+            $all_accessibility_terms = array_merge($all_accessibility_terms, $session_accessibility_terms);
+        }
+    }
+
+    // Remove duplicate terms
+    $all_accessibility_terms = array_unique($all_accessibility_terms);
+
+    // Attach unique accessibility terms to the parent movie
+    if (!empty($all_accessibility_terms)) {
+        wp_set_object_terms($movie_id, $all_accessibility_terms, 'accessibility', false);
+    }
 }
 
 ?>

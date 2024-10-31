@@ -45,9 +45,13 @@ function run_all_modules(){
 
     // Import from modules here
     hoyts_fetch_all_movies_and_sessions();
+
+    // Fill accessiblity taxonomies for movies
+    attach_accessibility_to_all_movies();
     
     // Run Cleanup
     delete_old_sessions($wpdb);
+
 }
 
 
@@ -240,7 +244,7 @@ add_action( 'init', 'register_session_post_type' );
 // ********************************************************************************
 //         Register the custom taxonomies for the 'session' post type
 // ********************************************************************************
-function register_session_taxonomies() {
+function register_movie_session_taxonomies() {
 
     // Register the Accessibility taxonomy
     $labels_accessibility = array(
@@ -266,7 +270,7 @@ function register_session_taxonomies() {
         'rewrite'           => array( 'slug' => 'accessibility' ),
     );
 
-    register_taxonomy( 'accessibility', array( 'session' ), $args_accessibility );
+    register_taxonomy( 'accessibility', array( 'session', 'movie' ), $args_accessibility );
 
     // Register the State taxonomy
     $labels_state = array(
