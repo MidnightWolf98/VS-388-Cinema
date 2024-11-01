@@ -181,6 +181,28 @@ function get_attachment_id_by_filename($file_name) {
     return $attachment_id;
 }
 
+// Function to delete all movie posters (call this function from admin panel options)
+function delete_all_movie_posters() {
+    // Get all movie posts
+    $args = array(
+        'post_type'      => 'movie',
+        'post_status'    => 'publish',
+        'numberposts'    => -1,
+    );
+    $movies = get_posts($args);
+
+    // Loop through each movie post
+    foreach ($movies as $movie) {
+        // Get the ID of the attached poster (featured image)
+        $poster_id = get_post_thumbnail_id($movie->ID);
+
+        // If a poster is attached, delete it
+        if ($poster_id) {
+            wp_delete_attachment($poster_id, true); // true to force delete
+        }
+    }
+}
+
 function add_accessibility_to_movie($movie_id, $new_accessibility_terms) {
     // Get current accessibility terms for the movie
     $current_terms = wp_get_post_terms($movie_id, 'accessibility', array('fields' => 'names'));

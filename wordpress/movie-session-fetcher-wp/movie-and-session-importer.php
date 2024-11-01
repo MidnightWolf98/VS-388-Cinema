@@ -120,6 +120,11 @@ function movie_importer_admin_page() {
         <form method="post" action="">
             <input type="submit" name="run_cleanup" class="button button-primary" value="Manually Cleanup Old Sessions Now">
         </form>
+
+        <form method="post" action="">
+            <input type="submit" name="run_poster_cleanup" class="button button-primary" value="Cleanup All Movie Posters">
+            <label><span style="color: orange;">Note:</span> This is for reseting the plugin state. RUN <strong>BEFORE DELETING ALL MOVIE POSTS.</strong></label><br>
+        </form>
     </div>
     
     <?php
