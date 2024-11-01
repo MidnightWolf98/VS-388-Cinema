@@ -131,8 +131,8 @@ function movie_importer_admin_page() {
 
         <hr>
 
-        <h4><strong>NUKES - FOR DEBUGGING!</strong></h4s>
-        <p><strong><span style="color:red;"><>USE WITH CAUTION!</span></strong></p>
+        <h3><strong>NUKES - FOR DEBUGGING!</strong></h3>
+        <p><strong><span style="color:red;">USE WITH CAUTION!</span></strong></p>
         <!-- <form method="post" action="">
             <input type="submit" name="nuke_all_movies_sessions" class="button button-primary" value="DELETE ALL MOVIES AND SESSIONS">
             <label><span style="color: orange;">Note:<strong>THIS DELETES EVERYTING. </span>(except Posters, run poster cleanup first.)</strong></label><br>
