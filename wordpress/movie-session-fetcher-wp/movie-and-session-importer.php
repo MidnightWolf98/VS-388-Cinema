@@ -2,7 +2,7 @@
 /*
 Plugin Name: Movies & Sessions Fetcher
 Description: A plugin that fetches movies and their sessions from external cinema APIS and inserts them as custom posts, and keeps these movies up to date with ratings and now showing or not.
-Version: 0.07.00 Beta
+Version: 0.07.01 Beta
 Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir Anand
 */
 
@@ -72,6 +72,14 @@ function movie_importer_admin_page() {
         hr {
             margin-bottom: 20px;
         }
+        .delete-button {
+        background-color: red;
+        border-color: red;
+        }
+        .delete-button:hover {
+            background-color: darkred;
+            border-color: darkred;
+        }
     </style>
     <div class="wrap">
         <h1>Movie & Session Fetcher</h1>
@@ -125,6 +133,30 @@ function movie_importer_admin_page() {
             <input type="submit" name="run_poster_cleanup" class="button button-primary" value="Cleanup All Movie Posters">
             <label><span style="color: orange;">Note:</span> This is for reseting the plugin state. RUN <strong>BEFORE DELETING ALL MOVIE POSTS.</strong></label><br>
         </form>
+
+        <hr>
+
+        <!-- <h3><strong>NUKES - FOR DEBUGGING</strong></h3>
+        <form method="post" action="">
+            <input type="submit" name="nuke_all_movies_sessions" class="button button-primary" value="DELETE ALL MOVIES AND SESSIONS">
+            <label><span style="color: orange;">Note:<strong>THIS DELETES EVERYTING. </span>(except Posters, run poster cleanup first.)</strong></label><br>
+        </form> -->
+
+        <form method="post" action="" onsubmit="return confirmDeletion();">
+            <input type="submit" name="nuke_all_movies_sessions" class="button button-primary delete-button" value="DELETE ALL MOVIES AND SESSIONS">
+            <label><span style="color: orange;">Note:<strong>THIS DELETES EVERYTHING. </span>(except Posters, run poster cleanup first.)</strong></label><br>
+        </form>
+
+        <script>
+            function confirmDeletion() {
+                if (!confirm("Have you run the poster cleanup first?")) {
+                    return false;
+                }
+                return confirm("Are you sure you want to delete all movies and sessions? This action cannot be undone.");
+            }
+        </script>
+
+
     </div>
     
     <?php
@@ -151,6 +183,10 @@ function movie_importer_admin_page() {
     if ( isset( $_POST['run_poster_cleanup'] ) ) {
         delete_all_movie_posters($wpdb);
         echo '<div class="notice notice-success is-dismissible"><p>Cleaned Up Posters Successfully!</p></div>';
+    }
+    if ( isset( $_POST['nuke_all_movies_sessions'] ) ) {
+        delete_all_movies_and_sessions();
+        echo '<div class="notice notice-success is-dismissible"><p>Deleted All Successfully.</p></div>';
     }
 }
 

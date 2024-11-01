@@ -211,9 +211,13 @@ function add_accessibility_to_movie($movie_id, $new_accessibility_terms) {
     $all_terms = array_unique(array_merge($current_terms, $new_accessibility_terms));
 
     // Attach unique accessibility terms to the parent movie
-    if (!empty($all_terms)) {
+    if (!empty($all_terms) & ($all_terms != $current_terms)) {
+
+        // Update the taxomomies
         wp_set_object_terms($movie_id, $all_terms, 'accessibility', false);
-        update_post_meta( $movie_id, 'supported_accessibility', $all_terms );
+
+        // Add to Custom-Fields
+        update_post_meta($movie_id, 'supported_accessibility', implode(" ", $all_terms));
     }
 }
 
@@ -292,6 +296,37 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
     $html .= '</div>';
 
     return $html;
+}
+
+function delete_all_movies_and_sessions() {
+    // Set the time limit to avoid timeout issues
+    set_time_limit(500);
+
+    // Get all movie posts
+    $movie_args = array(
+        'post_type'      => 'movie',
+        'post_status'    => 'any', // Include all statuses
+        'numberposts'    => -1,
+    );
+    $movies = get_posts($movie_args);
+
+    // Loop through each movie post and delete it
+    foreach ($movies as $movie) {
+        wp_delete_post($movie->ID, true); // true to force delete
+    }
+
+    // Get all session posts
+    $session_args = array(
+        'post_type'      => 'session',
+        'post_status'    => 'any', // Include all statuses
+        'numberposts'    => -1,
+    );
+    $sessions = get_posts($session_args);
+
+    // Loop through each session post and delete it
+    foreach ($sessions as $session) {
+        wp_delete_post($session->ID, true); // true to force delete
+    }
 }
 
 ?>
