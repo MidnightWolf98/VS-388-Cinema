@@ -129,22 +129,23 @@ function movie_importer_admin_page() {
             <input type="submit" name="run_cleanup" class="button button-primary" value="Manually Cleanup Old Sessions Now">
         </form>
 
-        <form method="post" action="">
-            <input type="submit" name="run_poster_cleanup" class="button button-primary" value="Cleanup All Movie Posters">
-            <label><span style="color: orange;">Note:</span> This is for reseting the plugin state. RUN <strong>BEFORE DELETING ALL MOVIE POSTS.</strong></label><br>
-        </form>
-
         <hr>
 
-        <!-- <h3><strong>NUKES - FOR DEBUGGING</strong></h3>
-        <form method="post" action="">
+        <h4><strong>NUKES - FOR DEBUGGING!</strong></h4s>
+        <p><strong><span style="color:red;"><>USE WITH CAUTION!</span></strong></p>
+        <!-- <form method="post" action="">
             <input type="submit" name="nuke_all_movies_sessions" class="button button-primary" value="DELETE ALL MOVIES AND SESSIONS">
             <label><span style="color: orange;">Note:<strong>THIS DELETES EVERYTING. </span>(except Posters, run poster cleanup first.)</strong></label><br>
         </form> -->
 
+        <form method="post" action="">
+            <input type="submit" name="run_poster_cleanup" class="button button-primary" value="DELETE ALL MOVIE POSTERS">
+            <label><span style="color: RED;">Note:</span> This is for reseting the plugin state. RUN <strong>BEFORE DELETING ALL MOVIE POSTS.</strong></label><br>
+        </form>
+
         <form method="post" action="" onsubmit="return confirmDeletion();">
-            <input type="submit" name="nuke_all_movies_sessions" class="button button-primary delete-button" value="DELETE ALL MOVIES AND SESSIONS">
-            <label><span style="color: orange;">Note:<strong>THIS DELETES EVERYTHING. </span>(except Posters, run poster cleanup first.)</strong></label><br>
+            <input type="submit" name="nuke_all_movies_sessions" class="button delete-button" value="DELETE ALL MOVIES AND SESSIONS">
+            <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. </span>(except Posters, RUN POSTER CLEANUP FIRST.)</strong></label><br>
         </form>
 
         <script>
