@@ -2,7 +2,7 @@
 /*
 Plugin Name: Movies & Sessions Fetcher
 Description: A plugin that fetches movies and their sessions from external cinema APIS and inserts them as custom posts, and keeps these movies up to date with ratings and now showing or not.
-Version: 0.06.99 Beta
+Version: 0.07.00 Beta
 Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir Anand
 */
 
@@ -147,6 +147,10 @@ function movie_importer_admin_page() {
     if ( isset( $_POST['run_cleanup'] ) ) {
         delete_old_sessions($wpdb);
         echo '<div class="notice notice-success is-dismissible"><p>Cleaned Up Sessions Successfully!</p></div>';
+    }
+    if ( isset( $_POST['run_poster_cleanup'] ) ) {
+        delete_all_movie_posters($wpdb);
+        echo '<div class="notice notice-success is-dismissible"><p>Cleaned Up Posters Successfully!</p></div>';
     }
 }
 

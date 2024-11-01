@@ -213,7 +213,7 @@ function add_accessibility_to_movie($movie_id, $new_accessibility_terms) {
     // Attach unique accessibility terms to the parent movie
     if (!empty($all_terms)) {
         wp_set_object_terms($movie_id, $all_terms, 'accessibility', false);
-        update_post_meta( $movie_id, 'Accessibility', $all_terms );
+        update_post_meta( $movie_id, 'supported_accessibility', $all_terms );
     }
 }
 
