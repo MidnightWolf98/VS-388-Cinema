@@ -2,9 +2,34 @@
 // HELPER FUNCTIONS INCLUDING:
 
 // 1. Function to delete old sessions FIX FUNCTION, DOESNT WORK! 
-function delete_old_sessions($wpdb) {
+function delete_old_sessions() {
+    // Set the time limit to avoid timeout issues
     set_time_limit(300);
-    $wpdb->query("DELETE FROM wp_movie_sessions WHERE session_date < DATE_SUB(CURDATE(), INTERVAL 1 DAY)");
+
+    // Get the current date and time
+    $current_time = current_time('timestamp');
+
+    // Calculate the timestamp for 1 day ago
+    $one_day_ago = strtotime('-1 day', $current_time);
+
+    // Query to get all session posts that are more than 1 day old
+    $args = array(
+        'post_type'      => 'session',
+        'post_status'    => 'publish',
+        'date_query'     => array(
+            array(
+                'before' => date('Y-m-d H:i:s', $one_day_ago),
+                'inclusive' => true,
+            ),
+        ),
+        'posts_per_page' => -1, // Get all matching posts
+    );
+    $old_sessions = get_posts($args);
+
+    // Loop through each session post and delete it
+    foreach ($old_sessions as $session) {
+        wp_delete_post($session->ID, true); // true to force delete
+    }
 }
 
 function insert_movie(/*add variables*/){}
@@ -166,6 +191,7 @@ function add_accessibility_to_movie($movie_id, $new_accessibility_terms) {
     // Attach unique accessibility terms to the parent movie
     if (!empty($all_terms)) {
         wp_set_object_terms($movie_id, $all_terms, 'accessibility', false);
+        update_post_meta( $movie_id, 'Accessibility', $all_terms );
     }
 }
 
