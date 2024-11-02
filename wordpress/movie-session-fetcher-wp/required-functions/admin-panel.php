@@ -76,16 +76,16 @@ function movie_importer_admin_page() {
 
         <hr>
 
-        <h3><strong>NUKES - FOR DEBUGGING!</strong></h3>
+        <h3><strong>DELETERS - FOR FULL CLEANUP</strong></h3>
         <p><strong><span style="color:red;">USE WITH CAUTION!</span></strong></p>
         <!-- <form method="post" action="">
             <input type="submit" name="nuke_all_movies_sessions" class="button button-primary" value="DELETE ALL MOVIES AND SESSIONS">
             <label><span style="color: orange;">Note:<strong>THIS DELETES EVERYTING. </span>(except Posters, run poster cleanup first.)</strong></label><br>
         </form> -->
 
-        <form method="post" action="">
-            <input type="submit" name="run_poster_cleanup" class="button button-primary" value="DELETE ALL MOVIE POSTERS">
-            <label><span style="color: RED;">Note:</span> This is for reseting the plugin state. RUN <strong>BEFORE DELETING ALL MOVIE POSTS.</strong></label><br>
+        <form method="post" action="" onsubmit="return confirmPosterDeletion();">
+            <input type="submit" name="run_poster_cleanup" class="button delete-button" value="DELETE ALL MOVIE POSTERS">
+            <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. </span>(except Posters, RUN POSTER CLEANUP FIRST.)</strong></label><br>
         </form>
 
         <form method="post" action="" onsubmit="return confirmDeletion();">
@@ -93,12 +93,26 @@ function movie_importer_admin_page() {
             <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. </span>(except Posters, RUN POSTER CLEANUP FIRST.)</strong></label><br>
         </form>
 
+        <form method="post" action="" onsubmit="return confirmDeletionAll();">
+            <input type="submit" name="nuke_all" class="button delete-button" value="DELETE EVERYTHING">
+            <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. (INC POSTERS!) </span></strong></label><br>
+        </form>
+
         <script>
+            function confirmPosterDeletion() {
+                return confirm("Are you sure you want to delete all movies posters? This action CANNOT be undone.");
+            }
             function confirmDeletion() {
                 if (!confirm("Have you run the poster cleanup first?")) {
                     return false;
                 }
-                return confirm("Are you sure you want to delete all movies and sessions? This action CAN NOT be undone.");
+                return confirm("Are you sure you want to delete all movies and sessions? This action CANNOT be undone.");
+            }
+            function confirmDeletionAll() {
+                if (!confirm("Are you sure you want to delete EVERYTHING? This action CANNOT be undone!")) {
+                    return false;
+                }
+                return confirm("Confirm Deletion one last time. This action CANNOT be undone!"); 
             }
         </script>
 
@@ -132,6 +146,10 @@ function movie_importer_admin_page() {
     }
     if ( isset( $_POST['nuke_all_movies_sessions'] ) ) {
         delete_all_movies_and_sessions();
+        echo '<div class="notice notice-success is-dismissible"><p>Deleted All Successfully.</p></div>';
+    }
+    if ( isset( $_POST['nuke_all'] ) ) {
+        delete_posters_movies_sessions();
         echo '<div class="notice notice-success is-dismissible"><p>Deleted All Successfully.</p></div>';
     }
 }

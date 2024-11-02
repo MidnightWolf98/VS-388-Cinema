@@ -45,6 +45,11 @@ function delete_old_sessions() {
     }
 }
 
+function delete_posters_movies_sessions(){
+    delete_all_movie_posters();
+    delete_all_movies_and_sessions();
+}
+
 // Function to delete all movie posters (call this function from admin panel options)
 function delete_all_movie_posters() {
     // Get all movie posts
