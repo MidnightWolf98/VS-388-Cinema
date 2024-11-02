@@ -12,23 +12,27 @@ function delete_old_sessions() {
     // Calculate the timestamp for 1 day ago
     $one_day_ago = strtotime('-1 day', $current_time);
 
-    // Query to get all session posts that are more than 1 day old
+    // Query to get all session posts
     $args = array(
         'post_type'      => 'session',
         'post_status'    => 'publish',
-        'date_query'     => array(
-            array(
-                'before' => date('Y-m-d H:i:s', $one_day_ago),
-                'inclusive' => true,
-            ),
-        ),
         'posts_per_page' => -1, // Get all matching posts
     );
-    $old_sessions = get_posts($args);
+    $sessions = get_posts($args);
 
-    // Loop through each session post and delete it
-    foreach ($old_sessions as $session) {
-        wp_delete_post($session->ID, true); // true to force delete
+    // Loop through each session post
+    foreach ($sessions as $session) {
+        // Get the term in the "Dates" taxonomy
+        $dates_terms = wp_get_post_terms($session->ID, 'Dates', array('fields' => 'names'));
+
+        // Check if the date is more than 1 day old
+        if (!empty($dates_terms)) {
+            $date = $dates_terms[0]; // Assuming each session has only one date
+            $date_timestamp = strtotime($date);
+            if ($date_timestamp < $one_day_ago) {
+                wp_delete_post($session->ID, true); // true to force delete
+            }
+        }
     }
 }
 
