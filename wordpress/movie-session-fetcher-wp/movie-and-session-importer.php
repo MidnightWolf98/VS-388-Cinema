@@ -58,6 +58,8 @@ function run_all_modules(){
     // Run each module main function here
     hoyts_fetch_all_movies_and_sessions();
     hoyts_fetch_all_movies_and_sessions(); // 2nd run, incase first timed out.
+    village_fetch_all_movies_and_sessions();
+    village_fetch_all_movies_and_sessions(); // 2nd run, incase first timed out.
     
     // Run Cleanup, only if its not the first run
     $last_run = get_option('movie_importer_last_run'); // Check if this is the first run

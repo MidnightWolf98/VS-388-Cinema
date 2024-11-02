@@ -77,12 +77,12 @@ function movie_importer_admin_page() {
         <hr>
         
         <h3><strong>DELETERS - FOR FULL CLEANUP</strong></h3>
-        <p><strong><span style="color:darkorange;">USE WITH CAUTION!</span></strong></p>
-
+            
         <!-- Toggle Switch -->
         <label for="toggle-deleters">Enable Deleters: </label>
         <input type="checkbox" id="toggle-deleters">
         <label><strong><span style="color: darkorange;"> USE WITH CAUTION! </span></strong></label><br>
+        <br>
 
         <!-- Forms for Deletion -->
         <div id="deleters-forms" class="disabled">
