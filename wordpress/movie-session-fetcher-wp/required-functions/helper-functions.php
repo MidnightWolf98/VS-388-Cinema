@@ -147,7 +147,7 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
     return $html;
 }
 
-function generate_session_html($cinema, $state, $suburb, $s_date, $s_time, $link) {
+function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb, $s_date, $s_time, $link) {
     // Sanitize the input fields
     $cinema = sanitize_text_field($cinema);
     $state = sanitize_text_field($state);
@@ -158,7 +158,8 @@ function generate_session_html($cinema, $state, $suburb, $s_date, $s_time, $link
 
     // Generate the HTML content
     $html = '<div class="session">';
-    $html .= '<h3>' . $cinema . '</h3>';
+    $html .= '<h3>' . $movie_title . "at" . $cinema . '</h3>';
+    $html .= '<p><strong>Accessibility:</strong> ' . implode(', ', $acc_tags) . '</p>';
     $html .= '<p><strong>Location:</strong> ' . $suburb . ', ' . $state . '</p>';
     $html .= '<p><strong>Date:</strong> ' . $s_date . '</p>';
     $html .= '<p><strong>Time:</strong> ' . $s_time . '</p>';
