@@ -1,3 +1,0 @@
-<?php
-//Village Cinema Module
-?>
