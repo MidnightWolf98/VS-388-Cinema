@@ -55,19 +55,19 @@ function movie_importer_admin_page() {
 
         <h3>Click the buttons below to manually fetch movies and sessions from the external cinema APIs.</h3>
         <form method="post" action="">
-        <label><span style="color: orange;">Note:</span> This can take a while.</label><br>
             <input type="submit" name="run_all" class="button button-primary" value="Run All Now">
+            <label><span style="color: orange;">Note:</span> This can take a while.</label><br>
         </form>
         <line>
 
         <form method="post" action="">
-        <label><span style="color: orange;">Note:</span> This can take a while when ran for the first time.</label><br>
             <input type="submit" name="import_movies" class="button button-primary" value="Manually Fetch Movies Now">
+            <label><span style="color: orange;">Note:</span> This can take a while when ran for the first time.</label><br>
         </form>
 
-        <form method="post" action="">
-        <label><span style="color: red;">Note:</span> Please import movies before importing sessions.</label><br>
+        <form method="post" action="">   
             <input type="submit" name="import_sessions" class="button button-primary" value="Manually Fetch Sessions Now">
+            <label><span style="color: red;">Note:</span> Please import movies before importing sessions.</label><br>
         </form>
 
         <form method="post" action="">
@@ -77,7 +77,7 @@ function movie_importer_admin_page() {
         <hr>
 
         <h3><strong>DELETERS - FOR FULL CLEANUP</strong></h3>
-        <p><strong><span style="color:red;">USE WITH CAUTION!</span></strong></p>
+        <p><strong><span style="color:darkorange;">USE WITH CAUTION!</span></strong></p>
         <!-- <form method="post" action="">
             <input type="submit" name="nuke_all_movies_sessions" class="button button-primary" value="DELETE ALL MOVIES AND SESSIONS">
             <label><span style="color: orange;">Note:<strong>THIS DELETES EVERYTING. </span>(except Posters, run poster cleanup first.)</strong></label><br>
@@ -85,7 +85,7 @@ function movie_importer_admin_page() {
 
         <form method="post" action="" onsubmit="return confirmPosterDeletion();">
             <input type="submit" name="run_poster_cleanup" class="button delete-button" value="DELETE ALL MOVIE POSTERS">
-            <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. </span>(except Posters, RUN POSTER CLEANUP FIRST.)</strong></label><br>
+            <label>Note:<strong> This Deletes all movie posters stored locally</strong></label><br>
         </form>
 
         <form method="post" action="" onsubmit="return confirmDeletion();">
@@ -146,11 +146,11 @@ function movie_importer_admin_page() {
     }
     if ( isset( $_POST['nuke_all_movies_sessions'] ) ) {
         delete_all_movies_and_sessions();
-        echo '<div class="notice notice-success is-dismissible"><p>Deleted All Successfully.</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>Deleted All Movies & Sessions Successfully. (Does not include posters)</p></div>';
     }
     if ( isset( $_POST['nuke_all'] ) ) {
         delete_posters_movies_sessions();
-        echo '<div class="notice notice-success is-dismissible"><p>Deleted All Successfully.</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>Deleted All Movies, Posters & Sessions Successfully.</p></div>';
     }
 }
 ?>
