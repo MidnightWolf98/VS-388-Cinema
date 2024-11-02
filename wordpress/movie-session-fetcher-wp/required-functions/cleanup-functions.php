@@ -34,6 +34,11 @@ function delete_old_sessions() {
         // Get the term in the "Dates" taxonomy
         $dates_terms = wp_get_post_terms($session->ID, 'Dates', array('fields' => 'names'));
 
+        // Check if the result is a WP_Error object
+        if (is_wp_error($dates_terms)) {
+            continue; // Skip this session if there's an error
+        }
+
         // Check if the date is more than 1 day old
         if (!empty($dates_terms)) {
             $date = $dates_terms[0]; // Assuming each session has only one date

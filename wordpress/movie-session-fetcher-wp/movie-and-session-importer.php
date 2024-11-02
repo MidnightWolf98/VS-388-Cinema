@@ -2,7 +2,7 @@
 /*
 Plugin Name: Movies & Sessions Fetcher
 Description: A plugin that fetches movies and their sessions from external cinema APIS and inserts them as custom posts, and keeps these movies up to date with ratings and now showing or not.
-Version: 0.07.06 Beta
+Version: 0.07.07 Beta
 Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir Anand
 */
 
@@ -59,8 +59,11 @@ function run_all_modules(){
     hoyts_fetch_all_movies_and_sessions();
     hoyts_fetch_all_movies_and_sessions(); // 2nd run, incase first timed out.
     
-    // Run Cleanup
-    delete_old_sessions($wpdb);
+    // Run Cleanup, only if its not the first run
+    $last_run = get_option('movie_importer_last_run'); // Check if this is the first run
+    if ($last_run) {
+        delete_old_sessions($wpdb); // Run Cleanup only if it's not the first run
+    }
 
     // Save the timestamp of the last run
     update_option('movie_importer_last_run', current_time('timestamp'));
