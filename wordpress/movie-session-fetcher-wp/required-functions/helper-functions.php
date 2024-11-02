@@ -21,7 +21,11 @@
 
 function insert_movie(/*add variables*/){}
 
-function insert_session(/*add variables*/){}
+// 
+function insert_session($movie_id, $access_tags, $s_date, 
+                        $s_time, $utc_date, $utc_time, 
+                        $session_id, $cinema_id, $link,
+                        $state, $suburb, $cinema){}
 
 function upload_image_from_url($image_url, $post_id) {
     // Check if the image has already been uploaded
@@ -138,6 +142,27 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
     $html .= '<p><strong>Genres:</strong> ' . $genres . '</p>';
     $html .= '<p><strong>Rating:</strong> ' . $rating . '</p>';
     $html .= '<p><a style"colour:green;" href="' . $link . '" target="_blank">More Info</a></p>';
+    $html .= '</div>';
+
+    return $html;
+}
+
+function generate_session_html($cinema, $state, $suburb, $s_date, $s_time, $link) {
+    // Sanitize the input fields
+    $cinema = sanitize_text_field($cinema);
+    $state = sanitize_text_field($state);
+    $suburb = sanitize_text_field($suburb);
+    $s_date = sanitize_text_field($s_date);
+    $s_time = sanitize_text_field($s_time);
+    $link = esc_url($link);
+
+    // Generate the HTML content
+    $html = '<div class="session">';
+    $html .= '<h3>' . $cinema . '</h3>';
+    $html .= '<p><strong>Location:</strong> ' . $suburb . ', ' . $state . '</p>';
+    $html .= '<p><strong>Date:</strong> ' . $s_date . '</p>';
+    $html .= '<p><strong>Time:</strong> ' . $s_time . '</p>';
+    $html .= '<p><a style"colour:green;" href="' . $link . '" target="_blank">Book Now</a></p>';
     $html .= '</div>';
 
     return $html;

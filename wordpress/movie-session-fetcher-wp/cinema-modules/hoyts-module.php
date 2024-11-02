@@ -300,6 +300,7 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
             'post_title'    => '"' . get_the_title( $movie_post_id ) . '"' . ' at Hoyts ' . $suburb . ', ' . $state . ' on ' . $session_date . ' ' . $session_time, // Title for the session post
             'post_status'   => 'publish',
             'post_type'     => 'session', // Custom post type for sessions
+            'post_content'  => generate_session_html('Hoyts', $state, $suburb, $session_date, $session_time, esc_url( 'https://hoyts.com.au' . $session['link'])), // No content for session posts
             'post_parent'   => $movie_post_id // Set the movie as the parent post
         );
         
