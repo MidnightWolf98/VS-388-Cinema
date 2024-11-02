@@ -9,8 +9,8 @@ Author: RMIT Team - Evan Kim, Hieu Tran, Yifan Shen, Sahil Narayanm and Mihir An
 // Import Required Functions Here. 
 // NOTES: - BE CAFEFULL WHEN MOVING FUNCTIONS AROUND!!!
 //        - ALSO DONT FORGET TO CHANGE THE PATHS IN THE IMPORTS!!!
-//require_once plugin_dir_path(__FILE__) . 'register-types/register-custom-posts.php'; //not moved yet
-//require_once plugin_dir_path(__FILE__) . 'register-types/register-custom-taxonomies.php'; //not moved yet
+require_once plugin_dir_path(__FILE__) . 'register-types/register-custom-posts.php'; //not moved yet
+require_once plugin_dir_path(__FILE__) . 'register-types/register-custom-taxonomies.php'; //not moved yet
 require_once plugin_dir_path(__FILE__) . 'required-functions/admin-panel.php';
 require_once plugin_dir_path(__FILE__) . 'required-functions/helper-functions.php';
 require_once plugin_dir_path(__FILE__) . 'required-functions/cleanup-functions.php';
