@@ -75,49 +75,14 @@ function movie_importer_admin_page() {
         </form>
 
         <hr>
-
-        <!-- <h3><strong>DELETERS - FOR FULL CLEANUP</strong></h3>
-        <p><strong><span style="color:darkorange;">USE WITH CAUTION!</span></strong></p>
-
-        <form method="post" action="" onsubmit="return confirmPosterDeletion();">
-            <input type="submit" name="run_poster_cleanup" class="button delete-button" value="DELETE ALL MOVIE POSTERS">
-            <label>Note:<strong> This Deletes all movie posters stored locally</strong></label><br>
-        </form>
-
-        <form method="post" action="" onsubmit="return confirmDeletion();">
-            <input type="submit" name="nuke_all_movies_sessions" class="button delete-button" value="DELETE ALL MOVIES AND SESSIONS">
-            <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. </span>(except Posters, RUN POSTER CLEANUP FIRST.)</strong></label><br>
-        </form>
-
-        <form method="post" action="" onsubmit="return confirmDeletionAll();">
-            <input type="submit" name="nuke_all" class="button delete-button" value="DELETE EVERYTHING">
-            <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. (INC POSTERS!) </span></strong></label><br>
-        </form>
-
-        <script>
-            function confirmPosterDeletion() {
-                return confirm("Are you sure you want to delete all movies posters? This action CANNOT be undone.");
-            }
-            function confirmDeletion() {
-                if (!confirm("Have you run the poster cleanup first?")) {
-                    return false;
-                }
-                return confirm("Are you sure you want to delete all movies and sessions? This action CANNOT be undone.");
-            }
-            function confirmDeletionAll() {
-                if (!confirm("Are you sure you want to delete EVERYTHING? This action CANNOT be undone!")) {
-                    return false;
-                }
-                return confirm("Confirm Deletion one last time. This action CANNOT be undone!"); 
-            }
-        </script> -->
         
         <h3><strong>DELETERS - FOR FULL CLEANUP</strong></h3>
         <p><strong><span style="color:darkorange;">USE WITH CAUTION!</span></strong></p>
 
         <!-- Toggle Switch -->
-        <label for="toggle-deleters">Enable Deleters:</label>
+        <label for="toggle-deleters">Enable Deleters: </label>
         <input type="checkbox" id="toggle-deleters">
+        <label><strong><span style="color: darkorange;"> USE WITH CAUTION! </span></strong></label><br>
 
         <!-- Forms for Deletion -->
         <div id="deleters-forms" class="disabled">
