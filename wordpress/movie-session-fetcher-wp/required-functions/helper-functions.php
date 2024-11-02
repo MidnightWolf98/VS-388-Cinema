@@ -158,7 +158,7 @@ function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb
 
     // Generate the HTML content
     $html = '<div class="session">';
-    $html .= '<h3>' . $movie_title . "at" . $cinema . '</h3>';
+    $html .= '<h3>' . $movie_title . " at " . $cinema . '</h3>';
     $html .= '<p><strong>Accessibility:</strong> ' . implode(', ', $acc_tags) . '</p>';
     $html .= '<p><strong>Location:</strong> ' . $suburb . ', ' . $state . '</p>';
     $html .= '<p><strong>Date:</strong> ' . $s_date . '</p>';

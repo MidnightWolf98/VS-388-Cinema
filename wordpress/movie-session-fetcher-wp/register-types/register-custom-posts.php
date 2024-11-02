@@ -35,6 +35,7 @@ function register_movie_post_type() {
         'menu_position'      => null,
         'menu_icon'          => 'dashicons-video-alt2', // Film camera icon
         'supports'           => array( 'title', 'editor', 'custom-fields' ),
+        'show_in_rest'      => true,
     );
 
     register_post_type( 'movie', $args );
@@ -73,6 +74,7 @@ function register_session_post_type() {
         'menu_position'      => null,
         'menu_icon'          => 'dashicons-format-video', // Film snip with play button icon
         'supports'           => array( 'title', 'editor', 'page-attributes', 'custom-fields' ),
+        'show_in_rest'      => true,
     );
 
     register_post_type( 'session', $args );

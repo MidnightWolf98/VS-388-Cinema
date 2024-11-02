@@ -27,6 +27,7 @@ function register_movie_session_taxonomies() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'accessibility' ),
+        'show_in_rest'      => true,
     );
 
     register_taxonomy( 'accessibility', array( 'session', 'movie' ), $args_accessibility );
@@ -53,6 +54,7 @@ function register_movie_session_taxonomies() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'state' ),
+        'show_in_rest'      => true,
     );
 
     register_taxonomy( 'state', array( 'session' ), $args_state );
@@ -79,6 +81,7 @@ function register_movie_session_taxonomies() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'suburb' ),
+        'show_in_rest'      => true,
     );
 
     register_taxonomy( 'suburb', array( 'session' ), $args_suburb );
@@ -104,6 +107,7 @@ function register_movie_session_taxonomies() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'cinema' ),
+        'show_in_rest'      => true,
     );
 
     register_taxonomy( 'cinema', array( 'session' ), $args_cinema );
@@ -130,6 +134,7 @@ function register_movie_session_taxonomies() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'date' ),
+        'show_in_rest'      => true,
     );
 
     register_taxonomy( 'date', array( 'session' ), $args_date );
@@ -156,6 +161,7 @@ function register_movie_session_taxonomies() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'time' ),
+        'show_in_rest'      => true,
     );
 
     register_taxonomy( 'time', array( 'session' ), $args_time );
@@ -182,6 +188,7 @@ function register_movie_session_taxonomies() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'utc-date' ),
+        'show_in_rest'      => true,
     );
 
     register_taxonomy( 'utc_date', array( 'session' ), $args_utc_date );
@@ -208,6 +215,8 @@ function register_movie_session_taxonomies() {
         'show_admin_column' => true,
         'query_var'         => true,
         'rewrite'           => array( 'slug' => 'utc-time' ),
+        'show_in_rest'      => true,
+        
     );
 
     register_taxonomy( 'utc_time', array( 'session' ), $args_utc_time );
