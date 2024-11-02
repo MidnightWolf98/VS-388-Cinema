@@ -45,7 +45,7 @@ function movie_importer_admin_page() {
             // Display the last run time DEOSNT WORK RN FIX LATER! 
             $last_run = get_option('movie_importer_last_run');
             if ($last_run) {
-                echo 'p>Last run: <strong>' . date('Y-m-d H:i:s', $last_run) . '</p>';
+                echo '<p>Last run: <strong>' . date('Y-m-d H:i:s', $last_run) . '</strong></p>';
             } else {
                 echo '<p>Last run: <strong>Never</strong></p>';
             }

@@ -61,6 +61,9 @@ function run_all_modules(){
     
     // Run Cleanup
     delete_old_sessions($wpdb);
+
+    // Save the timestamp of the last run
+    update_option('movie_importer_last_run', current_time('timestamp'));
 }
 
 // ********************************************************************************
