@@ -36,6 +36,7 @@ function delete_old_sessions() {
 
         // Check if the result is a WP_Error object
         if (is_wp_error($dates_terms)) {
+            set_transient('delete_old_sessions_error', $dates_terms->get_error_message(), 60);
             continue; // Skip this session if there's an error
         }
 

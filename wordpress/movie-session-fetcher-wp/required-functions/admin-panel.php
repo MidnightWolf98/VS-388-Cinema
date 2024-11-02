@@ -76,12 +76,8 @@ function movie_importer_admin_page() {
 
         <hr>
 
-        <h3><strong>DELETERS - FOR FULL CLEANUP</strong></h3>
+        <!-- <h3><strong>DELETERS - FOR FULL CLEANUP</strong></h3>
         <p><strong><span style="color:darkorange;">USE WITH CAUTION!</span></strong></p>
-        <!-- <form method="post" action="">
-            <input type="submit" name="nuke_all_movies_sessions" class="button button-primary" value="DELETE ALL MOVIES AND SESSIONS">
-            <label><span style="color: orange;">Note:<strong>THIS DELETES EVERYTING. </span>(except Posters, run poster cleanup first.)</strong></label><br>
-        </form> -->
 
         <form method="post" action="" onsubmit="return confirmPosterDeletion();">
             <input type="submit" name="run_poster_cleanup" class="button delete-button" value="DELETE ALL MOVIE POSTERS">
@@ -114,8 +110,80 @@ function movie_importer_admin_page() {
                 }
                 return confirm("Confirm Deletion one last time. This action CANNOT be undone!"); 
             }
-        </script>
+        </script> -->
+        
+        <h3><strong>DELETERS - FOR FULL CLEANUP</strong></h3>
+        <p><strong><span style="color:darkorange;">USE WITH CAUTION!</span></strong></p>
 
+        <!-- Toggle Switch -->
+        <label for="toggle-deleters">Enable Deleters:</label>
+        <input type="checkbox" id="toggle-deleters">
+
+        <!-- Forms for Deletion -->
+        <div id="deleters-forms" class="disabled">
+            <form method="post" action="" onsubmit="return confirmPosterDeletion();">
+                <input type="submit" name="run_poster_cleanup" class="button delete-button" value="DELETE ALL MOVIE POSTERS" disabled>
+                <label>Note:<strong> This Deletes all movie posters stored locally</strong></label><br>
+            </form>
+
+            <form method="post" action="" onsubmit="return confirmDeletion();">
+                <input type="submit" name="nuke_all_movies_sessions" class="button delete-button" value="DELETE ALL MOVIES AND SESSIONS" disabled>
+                <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. </span>(except Posters, RUN POSTER CLEANUP FIRST.)</strong></label><br>
+            </form>
+
+            <form method="post" action="" onsubmit="return confirmDeletionAll();">
+                <input type="submit" name="nuke_all" class="button delete-button" value="DELETE EVERYTHING" disabled>
+                <label><span style="color: red;">Note:<strong> THIS DELETES EVERYTHING. (INC POSTERS!) </span></strong></label><br>
+            </form>
+        </div>
+
+        <style>
+            .delete-button {
+                background-color: red;
+                border-color: red;
+            }
+            .delete-button:hover {
+                background-color: darkred;
+                border-color: darkred;
+            }
+            .disabled {
+                opacity: 0.5;
+                pointer-events: none;
+            }
+        </style>
+
+        <script>
+            document.getElementById('toggle-deleters').addEventListener('change', function() {
+                var deletersForms = document.getElementById('deleters-forms');
+                var deleteButtons = deletersForms.querySelectorAll('.delete-button');
+                if (this.checked) {
+                    deletersForms.classList.remove('disabled');
+                    deleteButtons.forEach(function(button) {
+                        button.disabled = false;
+                    });
+                } else {
+                    deletersForms.classList.add('disabled');
+                    deleteButtons.forEach(function(button) {
+                        button.disabled = true;
+                    });
+                }
+            });
+
+            function confirmPosterDeletion() {
+                return confirm("Are you sure you want to delete all movie posters?");
+            }
+
+            function confirmDeletion() {
+                if (!confirm("Have you run the poster cleanup first?")) {
+                    return false;
+                }
+                return confirm("Are you sure you want to delete all movies and sessions? This action cannot be undone.");
+            }
+
+            function confirmDeletionAll() {
+                return confirm("Are you sure you want to delete everything including posters? This action cannot be undone.");
+            }
+        </script>
 
     </div>
     
