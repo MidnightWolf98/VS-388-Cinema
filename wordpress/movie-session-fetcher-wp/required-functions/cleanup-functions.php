@@ -32,19 +32,26 @@ function delete_old_sessions() {
     // Loop through each session post
     foreach ($sessions as $session) {
         // Get the term in the "Dates" taxonomy
-        $dates_terms = wp_get_post_terms($session->ID, 'Dates', array('fields' => 'names'));
+        $dates_terms = wp_get_post_terms($session->ID, 'date', array('fields' => 'names'));
 
         // Check if the result is a WP_Error object
         if (is_wp_error($dates_terms)) {
-            set_transient('delete_old_sessions_error', $dates_terms->get_error_message(), 60);
+            $error_message = $dates_terms->get_error_message();
+            set_transient('delete_old_sessions_error', $error_message, 60);
+            error_log('Error retrieving terms for session ID ' . $session->ID . ': ' . $error_message);
             continue; // Skip this session if there's an error
         }
+
+        // Convert the array of dates to a string for logging
+        $dates_string = implode(', ', $dates_terms);
+        //error_log('Checking session ID ' . $session->ID . ' with dates ' . $dates_string . ' against today: '. $current_time);
 
         // Check if the date is more than 1 day old
         if (!empty($dates_terms)) {
             $date = $dates_terms[0]; // Assuming each session has only one date
             $date_timestamp = strtotime($date);
             if ($date_timestamp < $one_day_ago) {
+                //error_log('Deleting session ID ' . $session->ID . ' with date ' . $date);
                 wp_delete_post($session->ID, true); // true to force delete
             }
         }

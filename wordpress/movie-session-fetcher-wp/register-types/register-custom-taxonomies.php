@@ -224,4 +224,6 @@ function register_movie_session_taxonomies() {
 }
 add_action( 'init', 'register_movie_session_taxonomies' );
 
+
+
 ?>
