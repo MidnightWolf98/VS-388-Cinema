@@ -57,12 +57,6 @@ $venues = [
     //ADD REST LATER
 ];
 
-$statuses = [
-    'nowShowing' => 'Now Showing',
-    'advnaceSale' =>'Advance Screening',
-    'comingSoon' => 'Coming Soon',
-];
-
 // Run everything
 function hoyts_fetch_all_movies_and_sessions() {
     hoyts_fetch_and_insert_movies();
@@ -124,7 +118,16 @@ function hoyts_fetch_and_insert_movies() {
 
         $movie_link = 'https://hoyts.com.au' . $movie['link'];
         $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
-        $movie_status = isset($statuses[$movie['type']]) ? $statuses[$movie['type']] : 'Unknown';
+        
+        $movie_status = 'Unknown';
+
+        if($movie['type'] = 'nowShowing'){
+            $movie_status = 'Now Showing';
+        } else if($movie['type'] = 'comingSoon'){
+            $movie_status = 'Coming Soon';
+        } else if ($movie['type'] = 'advanceSale'){
+            $movie_status = 'Tickets on Sale, Release Soon';
+        }
 
         $movie_post_id = insert_movie($movie_title, 
                                      $movie['summary'], 
