@@ -124,7 +124,7 @@ function hoyts_fetch_and_insert_movies() {
 
         $movie_link = 'https://hoyts.com.au' . $movie['link'];
         $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
-        $movie_status = isset($statuses[$movie['status']]) ? $statuses[$movie['status']] : 'Unknown';
+        $movie_status = isset($statuses[$movie['type']]) ? $statuses[$movie['type']] : 'Unknown';
 
         $movie_post_id = insert_movie($movie_title, 
                                      $movie['summary'], 
