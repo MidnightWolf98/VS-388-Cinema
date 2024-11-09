@@ -1,10 +1,10 @@
 <?php
 /* FUNCTIONS IN THIS FILE:
     1. insert_movie()
-        not yet implemented
+        Inserts a movie post with the given details
     
     2. insert_session()
-        not yet implemented
+        Inserts a session post with the given details
     
     3. upload_image_from_url()
         Downloads an image from a URL and uploads it to the media library
@@ -17,6 +17,15 @@
     
     6. generate_movie_html()
         Generates HTML content for a movie post
+    
+    7. generate_session_html()
+        Generates HTML content for a session post
+    
+    8. format_date()
+        Formats a date from 'Y-m-d' to 'd/m/Y'
+    
+    9. format_time()
+        Formats a time from 'H:i:s' to 'g:i A'
 */
 
 
@@ -78,7 +87,21 @@ function insert_movie($title, $summary, $release_date, $runtime, $genres,
 }
 
 
-// UNIMPLEMENTED
+/* INSERT SESSION FUNCTION
+    IN: $movie_post_id => ID of the parent movie post
+        $movie_title => title of the movie
+        $access_tags => array of accessibility tags
+        $s_date => session date in 'Y-m-d' format
+        $s_time => session time in 'H:i:s' format
+        $utc_date => UTC date of the session in 'Y-m-d' format
+        $utc_time => UTC time of the session in 'H:i:s' format
+        $session_id => ID of the session
+        $link => (optional) URL for more information about the session
+        $state => state where the cinema is located
+        $suburb => suburb where the cinema is located
+        $cinema => name of the cinema
+    OUT: $session_post_id => ID of the inserted session post or null if insertion failed
+*/
 function insert_session($movie_post_id, $movie_title, $access_tags, $s_date, $s_time, $utc_date, $utc_time, 
                         $session_id, $link='', $state, $suburb, $cinema ) {
     
@@ -120,11 +143,12 @@ function insert_session($movie_post_id, $movie_title, $access_tags, $s_date, $s_
             wp_set_object_terms( $session_post_id, $state, 'state', true );
         }
 
-        // Assign 'Watergardens' to the suburb taxonomy if not already assigned
+        // Assign given suburb to the suburb taxonomy if not already assigned
         if ( !has_term( $suburb, 'suburb', $session_post_id ) ) {
             wp_set_object_terms( $session_post_id, $suburb, 'suburb', true );
         }
 
+        // Assign given cinema to the suburb taxonomy if not already assigned
         if ( !has_term( $cinema, 'cinema', $session_post_id ) ) {
             wp_set_object_terms( $session_post_id, $cinema, 'cinema', true );
         }
@@ -304,8 +328,8 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
         $cinema => name of the cinema
         $state => state where the cinema is located
         $suburb => suburb where the cinema is located
-        $s_date => session date
-        $s_time => session time
+        $s_date => session date, MUST PRE FORMATTED
+        $s_time => session time, MUST BE PRE FORMATTED
         $link => URL to book the session
     OUT: $html => generated HTML content for the session
 */
@@ -317,15 +341,6 @@ function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb
     $s_date = sanitize_text_field($s_date);
     $s_time = sanitize_text_field($s_time);
     $link = esc_url($link);
-
-    //MOVED INTO FUNCTION!!
-    // // Format the release date to a more readable format
-    // $release_date_obj = DateTime::createFromFormat('Y-m-d', $s_date);
-    // $release_date_formatted = $release_date_obj ? $release_date_obj->format('d/m/Y') : $s_date;
-
-    // // Format the time to 12-hour format
-    // $time_obj = DateTime::createFromFormat('H:i:s', $s_time);
-    // $s_time_formatted = $time_obj ? $time_obj->format('g:i A') : $s_time;
 
     // Generate the HTML content
     $html = '<div class="session">';
@@ -339,11 +354,19 @@ function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb
     return $html;
 }
 
+/* FORMAT DATE FUNCTION
+    IN: $date => date in 'Y-m-d' format
+    OUT: $formatted_date => date in 'd/m/Y' format or original date if invalid
+*/
 function format_date($date) {
     $date_obj = DateTime::createFromFormat('Y-m-d', $date);
     return $date_obj ? $date_obj->format('d/m/Y') : $date;
 }
 
+/* FORMAT TIME FUNCTION
+    IN: $time => time in 'H:i:s' format
+    OUT: $formatted_time => time in 'g:i A' format or original time if invalid
+*/
 function format_time($time) {
     $time_obj = DateTime::createFromFormat('H:i:s', $time);
     return $time_obj ? $time_obj->format('g:i A') : $time;

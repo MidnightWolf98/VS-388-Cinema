@@ -302,7 +302,7 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         // Attach accessibilty taxonomies to parent movie
         add_accessibility_to_movie($movie_post_id, $filtered_tags);
 
-        // Extract date and time from the session date
+        // Prepare data to send to insert session
         list($session_date, $session_time) = explode('T', $session['date']);
         list($session_utc_date, $session_utc_time) = explode('T', $session['utcDate']);
 
@@ -310,62 +310,9 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
 
         $book_link = 'https://hoyts.com.au' . $session['link'];
 
+        // Insert the session
         insert_session($movie_post_id, $movie_title, $filtered_tags, $session_date, $session_time, $session_utc_date, 
                        $session_utc_time, $session_id, $book_link, $state, $suburb, 'Hoyts');
-        
-        // Prepare the session post data
-        // $post_data = array(
-        //     'post_title'    => '"' . $movie_title . '"' . ' at Hoyts ' . $suburb . ', ' . $state . ' on ' . $session_date . ' ' . $session_time, // Title for the session post
-        //     'post_status'   => 'publish',
-        //     'post_type'     => 'session', // Custom post type for sessions
-        //     'post_content'  => generate_session_html($movie_title, $filtered_tags, 'Hoyts', $state, $suburb, $session_date, $session_time, esc_url( 'https://hoyts.com.au' . $session['link'])), // No content for session posts
-        //     'post_parent'   => $movie_post_id // Set the movie as the parent post
-        // );
-        
-        // // Insert the session post and get the post ID
-        // $session_post_id = wp_insert_post( $post_data );
-
-        
-        
-        // if ( $session_post_id ) {
-        //     // Store additional metadata including the session ID
-        //     update_post_meta( $session_post_id, 'session_id', $session_id ); // Store session ID to prevent duplicates
-        //     update_post_meta( $session_post_id, 'cinema_id', sanitize_text_field( $session['cinemaId'] ) );
-        //     update_post_meta( $session_post_id, 'session_date', sanitize_text_field( $session_date . " " . $session_time  ) );
-        //     update_post_meta( $session_post_id, 'utc_date', sanitize_text_field( $session['utcDate'] ) );
-        //     update_post_meta( $session_post_id, 'link', esc_url( 'https://hoyts.com.au' . $session['link'] ) );
-            
-        //     // Assign secondary tags to the Accessibility taxonomy
-        //     if ( !empty( $session['secondaryTags'] ) && is_array($session['secondaryTags']) ) {
-            
-        //         if (!empty($filtered_tags)) {
-        //             foreach ($filtered_tags as $tag) {
-        //                 $sanitized_tag = sanitize_text_field($tag);
-        //                 wp_set_object_terms($session_post_id, $sanitized_tag, 'accessibility', true);
-        //             }
-        //         }
-        //     }
-
-        //     // Assign the state to the state taxonomy if not already assigned
-        //     if ( !has_term( 'VIC', 'state', $session_post_id ) ) {
-        //         wp_set_object_terms( $session_post_id, $state, 'state', true );
-        //     }
-
-        //     // Assign 'Watergardens' to the suburb taxonomy if not already assigned
-        //     if ( !has_term( $suburb, 'suburb', $session_post_id ) ) {
-        //         wp_set_object_terms( $session_post_id, $suburb, 'suburb', true );
-        //     }
-
-        //     if ( !has_term( 'Hoyts', 'cinema', $session_post_id ) ) {
-        //         wp_set_object_terms( $session_post_id, 'Hoyts', 'cinema', true );
-        //     }
-            
-        //     wp_set_object_terms( $session_post_id, $session_date, 'date', true );
-        //     wp_set_object_terms( $session_post_id, $session_time, 'time', true );
-        //     wp_set_object_terms( $session_post_id, $session_utc_date, 'utc_date', true );
-        //     wp_set_object_terms( $session_post_id, $session_utc_time, 'utc_time', true );
-
-        // }
         
         wp_reset_postdata(); // Reset the WP_Query data
     }
