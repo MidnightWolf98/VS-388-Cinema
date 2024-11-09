@@ -95,6 +95,9 @@ function hoyts_fetch_and_insert_movies() {
     foreach ( $movies as $movie ) {
         $movie_title = sanitize_text_field( $movie['name'] );
         
+        //DEBUG!!!!
+        error_log("Processing movie $movie_title");
+
         // Use WP_Query to check if a post with the same movie title exists
         $args = array(
             'post_type'  => 'Movie', // Custom post type
@@ -121,18 +124,20 @@ function hoyts_fetch_and_insert_movies() {
         
         $movie_status = 'Unknown';
 
-        if($movie['type'] = 'nowShowing'){
+        error_log("Movie Status: " . $movie['type']);
+
+        if($movie['type'] == 'nowShowing'){
             $movie_status = 'Now Showing';
-        } else if($movie['type'] = 'comingSoon'){
+        } else if($movie['type'] == 'comingSoon'){
             $movie_status = 'Coming Soon';
-        } else if ($movie['type'] = 'advanceSale'){
+        } else if ($movie['type'] == 'advanceSale'){
             $movie_status = 'Tickets on Sale, Release Soon';
         }
 
         $movie_post_id = insert_movie($movie_title, 
                                      $movie['summary'], 
                                      $movie['releaseDate'], 
-                                     $movie['runtime']['minutes'], 
+                                     $movie['duration'], 
                                      $movie['genres'], 
                                      $movie['rating']['id'], 
                                      $movie_link, 
@@ -143,45 +148,14 @@ function hoyts_fetch_and_insert_movies() {
             update_post_meta( $movie_post_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
         }
 
-        // $movie_html = generate_movie_html( $movie_title, $movie['summary'], $movie['releaseDate'], $movie['runtime']['minutes'], $movie['genres'], $movie['rating']['id'], 'https://hoyts.com.au' . $movie['link'] );
-        
-        // // Prepare the post data
-        // $post_data = array(
-        //     'post_title'    => $movie_title,
-        //     'post_content'  => $movie_html,
-        //     'post_status'   => 'publish',
-        //     'post_type'     => 'movie', // Custom post type for movies
-        // );
-        
-        // // Insert the post and get the post ID
-        // $post_id = wp_insert_post( $post_data );
-
-        // // If the post was successfully created
-        // if ( $post_id ) {
-        //     // Add additional metadata like release date, runtime, genres, etc.
-        //     update_post_meta( $post_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
-        //     update_post_meta( $post_id, 'release_date', sanitize_text_field( $movie['releaseDate'] ) );
-        //     update_post_meta( $post_id, 'runtime', intval( $movie['runtime']['minutes'] ) );
-        //     update_post_meta( $post_id, 'genres', implode( ', ', array_map( 'sanitize_text_field', $movie['genres'] ) ) );
-        //     update_post_meta( $post_id, 'rating', sanitize_text_field( $movie['rating']['id'] ) );
-        //     update_post_meta( $post_id, 'link', esc_url( 'https://hoyts.com.au' . $movie['link'] ) );
-        // }
-        
-        // // LOCALLY UPLOAD POSTER IMAGE FROM URL (CURRENTLY DEACTIVATED)!!!
-        // if ( !empty( $movie['posterImage'] ) ) {
-        //     // Upload the movie poster from the URL
-        //     $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'], $post_id );
-            
-        //     if ( $poster_id ) {
-        //         // If the poster was uploaded successfully, set it as the featured image
-        //         set_post_thumbnail( $post_id, $poster_id );
-        //     }
-
-        //     update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'] ) );
-        // }
+        // Unset variables to free memory
+        unset($movie_title, $movie_link, $movie_poster, $movie_status, $movie_post_id);
         
         wp_reset_postdata(); // Reset the WP_Query data
     }
+
+    unset($movies); // Free memory
+    
 }
 
 // Get Poster for movie (upload image from URL locally, USE AT OWN DISCRETION)
