@@ -32,7 +32,8 @@
         $status => (optional) status of the movie (default: 'Unknown')
     OUT: $post_id => ID of the inserted movie post or null if insertion failed
 */
-function insert_movie($title, $summary, $release_date, $runtime, $genres, $rating, $link = null, $poster_url = null, $status = 'Unknown') {
+function insert_movie($title, $summary, $release_date, $runtime, $genres, 
+                      $rating, $link = null, $poster_url = null, $status = 'Unknown') {
 
     //generate the movie html
     $movie_html = generate_movie_html( $title, $summary, $release_date, 
@@ -78,11 +79,59 @@ function insert_movie($title, $summary, $release_date, $runtime, $genres, $ratin
 
 
 // UNIMPLEMENTED
-function insert_session($movie_id, $access_tags, $s_date, 
-                        $s_time, $utc_date, $utc_time, 
-                        $session_id, $cinema_id, $link,
-                        $state, $suburb, $cinema){
-    
+function insert_session($movie_post_id, $movie_title, $access_tags, $s_date, $s_time, $utc_date, $utc_time, 
+                        $session_id, $link='', $state, $suburb, $cinema ) {
+    // Prepare the post data
+    $post_data = array(
+        'post_title'    => '"' . $movie_title . '"' . ' at '. $cinema . $suburb . ', ' . $state . ' on ' . $s_date . ' ' . $s_time, // Title for the session post
+        'post_status'   => 'publish',
+        'post_type'     => 'session', // Custom post type for sessions
+        'post_content'  => generate_session_html($movie_title, $access_tags, $cinema, $state, $suburb, $s_date, $s_time, esc_url( $link )), // No content for session posts
+        'post_parent'   => $movie_post_id // Set the movie as the parent post
+    );
+
+    // Insert the session post and get the post ID
+    $session_post_id = wp_insert_post( $post_data );
+
+    if ( $session_post_id ) {
+        // Store additional metadata including the session ID
+        update_post_meta( $session_post_id, 'session_id', $session_id ); // Store session ID to prevent duplicates
+        update_post_meta( $session_post_id, 'session_date', sanitize_text_field( $s_date . " " . $s_time  ) );
+        update_post_meta( $session_post_id, 'utc_date', sanitize_text_field( $utc_date) );
+        update_post_meta( $session_post_id, 'link', esc_url( $link ) );
+        
+        // Assign secondary tags to the Accessibility taxonomy
+        if ( !empty( $access_tags ) && is_array( $access_tags ) ) {
+        
+            if (!empty($filtered_tags)) {
+                foreach ($filtered_tags as $tag) {
+                    $sanitized_tag = sanitize_text_field($tag);
+                    wp_set_object_terms($session_post_id, $sanitized_tag, 'accessibility', true);
+                }
+            }
+        }
+
+        // Assign the state to the state taxonomy if not already assigned
+        if ( !has_term( $state, 'state', $session_post_id ) ) {
+            wp_set_object_terms( $session_post_id, $state, 'state', true );
+        }
+
+        // Assign 'Watergardens' to the suburb taxonomy if not already assigned
+        if ( !has_term( $suburb, 'suburb', $session_post_id ) ) {
+            wp_set_object_terms( $session_post_id, $suburb, 'suburb', true );
+        }
+
+        if ( !has_term( $cinema, 'cinema', $session_post_id ) ) {
+            wp_set_object_terms( $session_post_id, $cinema, 'cinema', true );
+        }
+        
+        wp_set_object_terms( $session_post_id, $s_date, 'date', true );
+        wp_set_object_terms( $session_post_id, $s_time, 'time', true );
+        wp_set_object_terms( $session_post_id, $utc_date, 'utc_date', true );
+        wp_set_object_terms( $session_post_id, $utc_time, 'utc_time', true );
+
+    }
+
 }
 
 
