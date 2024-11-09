@@ -57,6 +57,12 @@ $venues = [
     //ADD REST LATER
 ];
 
+$statuses = [
+    'nowShowing' => 'Now Showing',
+    'advnaceSale' =>'Advance Screening',
+    'comingSoon' => 'Coming Soon',
+];
+
 // Run everything
 function hoyts_fetch_all_movies_and_sessions() {
     hoyts_fetch_and_insert_movies();
@@ -116,45 +122,58 @@ function hoyts_fetch_and_insert_movies() {
             continue;
         }
 
-        $movie_html = generate_movie_html( $movie_title, $movie['summary'], $movie['releaseDate'], $movie['runtime']['minutes'], $movie['genres'], $movie['rating']['id'], 'https://hoyts.com.au' . $movie['link'] );
-        
-        // Prepare the post data
-        $post_data = array(
-            'post_title'    => $movie_title,
-            'post_content'  => $movie_html,
-            'post_status'   => 'publish',
-            'post_type'     => 'movie', // Custom post type for movies
-        );
-        
-        // Insert the post and get the post ID
-        $post_id = wp_insert_post( $post_data );
+        $movie_link = 'https://hoyts.com.au' . $movie['link'];
+        $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
+        $movie_status = isset($statuses[$movie['status']]) ? $statuses[$movie['status']] : 'Unknown';
 
-        // If the post was successfully created
-        if ( $post_id ) {
-            // Add additional metadata like release date, runtime, genres, etc.
-            update_post_meta( $post_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
-            update_post_meta( $post_id, 'release_date', sanitize_text_field( $movie['releaseDate'] ) );
-            update_post_meta( $post_id, 'runtime', intval( $movie['runtime']['minutes'] ) );
-            update_post_meta( $post_id, 'genres', implode( ', ', array_map( 'sanitize_text_field', $movie['genres'] ) ) );
-            update_post_meta( $post_id, 'rating', sanitize_text_field( $movie['rating']['id'] ) );
-            update_post_meta( $post_id, 'link', esc_url( 'https://hoyts.com.au' . $movie['link'] ) );
-        }
-        
-        // LOCALLY UPLOAD POSTER IMAGE FROM URL (CURRENTLY DEACTIVATED)!!!
-        if ( !empty( $movie['posterImage'] ) ) {
-            // Upload the movie poster from the URL
-            $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'], $post_id );
-            
-            if ( $poster_id ) {
-                // If the poster was uploaded successfully, set it as the featured image
-                set_post_thumbnail( $post_id, $poster_id );
-            }
+        $movie_post_id = insert_movie($movie_title, 
+                                     $movie['summary'], 
+                                     $movie['releaseDate'], 
+                                     $movie['runtime']['minutes'], 
+                                     $movie['genres'], 
+                                     $movie['rating']['id'], 
+                                     $movie_link, 
+                                     $movie_poster,
+                                     $movie_status);
 
-            update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'] ) );
+        if ($movie_post_id) {
+            update_post_meta( $movie_post_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
         }
 
+        // $movie_html = generate_movie_html( $movie_title, $movie['summary'], $movie['releaseDate'], $movie['runtime']['minutes'], $movie['genres'], $movie['rating']['id'], 'https://hoyts.com.au' . $movie['link'] );
+        
+        // // Prepare the post data
+        // $post_data = array(
+        //     'post_title'    => $movie_title,
+        //     'post_content'  => $movie_html,
+        //     'post_status'   => 'publish',
+        //     'post_type'     => 'movie', // Custom post type for movies
+        // );
+        
+        // // Insert the post and get the post ID
+        // $post_id = wp_insert_post( $post_data );
+
+        // // If the post was successfully created
+        // if ( $post_id ) {
+        //     // Add additional metadata like release date, runtime, genres, etc.
+        //     update_post_meta( $post_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
+        //     update_post_meta( $post_id, 'release_date', sanitize_text_field( $movie['releaseDate'] ) );
+        //     update_post_meta( $post_id, 'runtime', intval( $movie['runtime']['minutes'] ) );
+        //     update_post_meta( $post_id, 'genres', implode( ', ', array_map( 'sanitize_text_field', $movie['genres'] ) ) );
+        //     update_post_meta( $post_id, 'rating', sanitize_text_field( $movie['rating']['id'] ) );
+        //     update_post_meta( $post_id, 'link', esc_url( 'https://hoyts.com.au' . $movie['link'] ) );
+        // }
+        
+        // // LOCALLY UPLOAD POSTER IMAGE FROM URL (CURRENTLY DEACTIVATED)!!!
         // if ( !empty( $movie['posterImage'] ) ) {
         //     // Upload the movie poster from the URL
+        //     $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'], $post_id );
+            
+        //     if ( $poster_id ) {
+        //         // If the poster was uploaded successfully, set it as the featured image
+        //         set_post_thumbnail( $post_id, $poster_id );
+        //     }
+
         //     update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'] ) );
         // }
         

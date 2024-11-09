@@ -19,9 +19,51 @@
         Generates HTML content for a movie post
 */
 
-function insert_movie(/*add variables*/){}
+function insert_movie($title, $summary, $release_date, $runtime, $genres, $rating, $link = null, $poster_url = null, $status = 'Unknown') {
 
-// 
+    //generate the movie html
+    $movie_html = generate_movie_html( $title, $summary, $release_date, 
+                                       $runtime, $genres, $rating ,$link );
+
+    // Prepare the post data
+    $post_data = array(
+        'post_title'    => $title,
+        'post_content'  => $movie_html,
+        'post_status'   => 'publish',
+        'post_type'     => 'movie', // Custom post type for movies
+    );
+
+    $post_id = wp_insert_post( $post_data );
+
+    if ( $post_id ) {
+        // Add additional metadata like release date, runtime, genres, etc.
+        update_post_meta( $post_id, 'release_date', sanitize_text_field( $release_date ) );
+        update_post_meta( $post_id, 'runtime', intval( $runtime ) );
+        update_post_meta( $post_id, 'genres', implode( ', ', array_map( 'sanitize_text_field', $genres ) ) );
+        update_post_meta( $post_id, 'rating', sanitize_text_field( $rating ) );
+        update_post_meta( $post_id, 'link', esc_url( $link ) );
+
+        if ( !empty( $poster_url ) ) {
+            // Upload the movie poster from the URL
+            $poster_id = upload_image_from_url( $poster_url, $post_id );
+            
+            if ( $poster_id ) {
+                // If the poster was uploaded successfully, set it as the featured image
+                set_post_thumbnail( $post_id, $poster_id );
+            }
+
+            update_post_meta( $post_id, 'img_link', esc_url( $poster_url ) );   
+        }
+        
+        // Set the status taxonomy of the movie to given or default
+        wp_set_object_terms( $post_id, sanitize_text_field( $status ), 'status' );
+
+        return $post_id; // Return the post ID of the inserted movie
+    }
+    // Return nothing when the movie couldn't be inserted 
+}
+
+// UNIMPLEMENTED
 function insert_session($movie_id, $access_tags, $s_date, 
                         $s_time, $utc_date, $utc_time, 
                         $session_id, $cinema_id, $link,

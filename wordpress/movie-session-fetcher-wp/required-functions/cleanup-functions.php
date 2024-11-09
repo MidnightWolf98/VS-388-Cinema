@@ -116,4 +116,34 @@ function delete_all_movies_and_sessions() {
     }
 }
 
+// Function to delete old date taxonomies
+function delete_old_date_taxonomies() {
+    // Get all date terms
+    $date_terms = get_terms(array(
+        'taxonomy'   => 'date',
+        'hide_empty' => false,
+    ));
+
+    // Get the current date and time
+    $current_time = current_time('timestamp');
+
+    // Calculate the timestamp for 1 day ago
+    $one_day_ago = strtotime('-1 day', $current_time);
+
+    // Loop through each date term
+    foreach ($date_terms as $date_term) {
+        // Get the date string from the term
+        $date_string = $date_term->name;
+
+        // Convert the date string to a timestamp
+        $date_timestamp = strtotime($date_string);
+
+        // Check if the date is more than 1 day old
+        if ($date_timestamp < $one_day_ago) {
+            // Delete the date term
+            wp_delete_term($date_term->term_id, 'date');
+        }
+    }
+}
+
 ?>
