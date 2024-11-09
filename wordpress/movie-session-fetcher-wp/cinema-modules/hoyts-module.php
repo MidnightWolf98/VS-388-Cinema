@@ -112,13 +112,22 @@ function hoyts_fetch_and_insert_movies() {
             'posts_per_page' => 1 // Limit to 1 result
         );
         $query = new WP_Query( $args );
+
+        $movie_status = 'Unknown';
+
+        if ($movie['type'] == 'nowShowing') {
+            $movie_status = 'Now Showing';
+        } elseif ($movie['type'] == 'comingSoon') {
+            $movie_status = 'Coming Soon';
+        } elseif ($movie['type'] == 'advanceSale') {
+            $movie_status = 'Tickets on Sale, Release Soon';
+        } elseif ($movie['type'] == 'advanceScreening') {
+            $movie_status = 'Advance Screening';
+        }
         
         if ( $query->have_posts() ) {
             // If the movie already exists, update its status
-            $existing_movie_id = $query->posts[0]->ID;
-
-            // Get the status of the movie
-            $movie_status = isset($statuses[$movie['type']]) ? $statuses[$movie['type']] : 'Unknown';
+            $existing_movie_id = $query->posts[0]->ID;        
 
             // Update the status taxonomy of the existing movie
             wp_set_object_terms($existing_movie_id, sanitize_text_field($movie_status), 'status');
@@ -134,10 +143,9 @@ function hoyts_fetch_and_insert_movies() {
             continue;
         }
 
+        // Set links
         $movie_link = 'https://hoyts.com.au' . $movie['link'];
         $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
-        
-        $movie_status = isset($statuses[$movie['type']]) ? $statuses[$movie['type']] : 'Unknown';
         
         // Format release date 
         list($release_date, $release_time) = explode('T', $movie['releaseDate']);
