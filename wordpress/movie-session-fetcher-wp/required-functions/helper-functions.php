@@ -91,15 +91,30 @@ function insert_session($movie_id, $access_tags, $s_date,
     OUT: $attachment_id => ID of the uploaded image attachment or false if upload failed
 */                
 function upload_image_from_url($image_url, $post_id) {
+    
+    // Get the file name of the image
+    $file_name = basename($image_url);
+
     // Check if the image has already been uploaded
-    $existing_attachment_id = get_attachment_id_by_filename(basename($image_url));
+    $existing_attachment_id = get_attachment_id_by_filename($file_name);
     if ($existing_attachment_id) {
         // If the image is already uploaded, return the existing attachment ID
         return $existing_attachment_id;
     }
 
-    // Get the file name of the image
-    $file_name = basename($image_url);
+    // Make a HEAD request to get the file headers
+    $head_response = wp_remote_head($image_url);
+
+    if (is_wp_error($head_response)) {
+        return false; // Handle error if the HEAD request failed
+    }
+
+    // Get the Content-Length header to check the file size
+    $content_length = wp_remote_retrieve_header($head_response, 'content-length');
+
+    if ($content_length && $content_length > 15728640) { // 10 MB limit
+        return null; // return no poster if the file size is too larges
+    }
     
     // Download the image from the URL
     $response = wp_remote_get($image_url);
