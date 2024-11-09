@@ -57,6 +57,13 @@ $venues = [
     //ADD REST LATER
 ];
 
+$statuses = [
+    'nowShowing' => 'Now Showing',
+    'comingSoon' => 'Coming Soon',
+    'advanceSale' => 'Tickets on Sale, Release Soon',
+    'advanceScreening' => 'Advance Screening'
+];
+
 // Run everything
 function hoyts_fetch_all_movies_and_sessions() {
     hoyts_fetch_and_insert_movies();
@@ -96,7 +103,7 @@ function hoyts_fetch_and_insert_movies() {
         $movie_title = sanitize_text_field( $movie['name'] );
         
         //DEBUG!!!!
-        error_log("Processing movie $movie_title");
+        //error_log("Processing movie $movie_title");
 
         // Use WP_Query to check if a post with the same movie title exists
         $args = array(
@@ -107,8 +114,16 @@ function hoyts_fetch_and_insert_movies() {
         $query = new WP_Query( $args );
         
         if ( $query->have_posts() ) {
-            // If the movie already exists, skip it
-            error_log("Movie already exists $movie_title ");
+            // If the movie already exists, update its status
+            $existing_movie_id = $query->posts[0]->ID;
+
+            // Get the status of the movie
+            $movie_status = isset($statuses[$movie['type']]) ? $statuses[$movie['type']] : 'Unknown';
+
+            // Update the status taxonomy of the existing movie
+            wp_set_object_terms($existing_movie_id, sanitize_text_field($movie_status), 'status');
+            update_post_meta( $existing_movie_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
+
             wp_reset_postdata();
             continue;
         }
@@ -122,16 +137,13 @@ function hoyts_fetch_and_insert_movies() {
         $movie_link = 'https://hoyts.com.au' . $movie['link'];
         $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
         
-        $movie_status = 'Unknown';
+        $movie_status = isset($statuses[$movie['type']]) ? $statuses[$movie['type']] : 'Unknown';
+        
+        //DEBUG
+        //error_log("Movie Status: " . $movie['type']);
 
-        error_log("Movie Status: " . $movie['type']);
-
-        if($movie['type'] == 'nowShowing'){
-            $movie_status = 'Now Showing';
-        } else if($movie['type'] == 'comingSoon'){
-            $movie_status = 'Coming Soon';
-        } else if ($movie['type'] == 'advanceSale'){
-            $movie_status = 'Tickets on Sale, Release Soon';
+        if(!$movie_status){
+            $movie_status = 'Unknown';
         }
 
         $movie_post_id = insert_movie($movie_title, 
@@ -144,18 +156,14 @@ function hoyts_fetch_and_insert_movies() {
                                      $movie_poster,
                                      $movie_status);
 
+        // Add the HoytsID as a meta field to the movie post
         if ($movie_post_id) {
             update_post_meta( $movie_post_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
         }
-
-        // Unset variables to free memory
-        unset($movie_title, $movie_link, $movie_poster, $movie_status, $movie_post_id);
         
         wp_reset_postdata(); // Reset the WP_Query data
     }
 
-    unset($movies); // Free memory
-    
 }
 
 // Get Poster for movie (upload image from URL locally, USE AT OWN DISCRETION)
