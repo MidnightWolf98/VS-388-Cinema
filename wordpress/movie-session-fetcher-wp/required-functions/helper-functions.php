@@ -265,12 +265,20 @@ function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb
     $s_time = sanitize_text_field($s_time);
     $link = esc_url($link);
 
+    // Format the release date to a more readable format
+    $release_date_obj = DateTime::createFromFormat('Y-m-d', $s_date);
+    $release_date_formatted = $release_date_obj ? $release_date_obj->format('d/m/Y') : $s_date;
+
+    // Format the time to 12-hour format
+    $time_obj = DateTime::createFromFormat('H:i:s', $s_time);
+    $s_time_formatted = $time_obj ? $time_obj->format('g:i A') : $s_time;
+
     // Generate the HTML content
     $html = '<div class="session">';
     $html .= '<p><strong>Accessibility:</strong> ' . implode(', ', $acc_tags) . '</p>';
     $html .= '<p><strong>Location:</strong> ' . $suburb . ', ' . $state . '</p>';
-    $html .= '<p><strong>Date:</strong> ' . $s_date . '</p>';
-    $html .= '<p><strong>Time:</strong> ' . $s_time . '</p>';
+    $html .= '<p><strong>Date:</strong> ' . $release_date_formatted . '</p>';
+    $html .= '<p><strong>Time:</strong> ' . $s_time_formatted . '</p>';
     $html .= '<p><a style"colour:green;" href="' . $link . '" target="_blank">Book Now</a></p>';
     $html .= '</div>';
 
