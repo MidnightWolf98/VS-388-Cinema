@@ -152,6 +152,7 @@ function hoyts_fetch_and_insert_movies() {
         $release_date_obj = DateTime::createFromFormat('Y-m-d', $release_date);
         $release_date_formatted = $release_date_obj ? $release_date_obj->format('d/m/Y') : $release_date;
 
+        // Set runtime (ensure it exists, as some JSON movie objs dont have duration)
         $movie_runtime = isset($movie['duration']) ? $movie['duration'] : "Unknown";
         
 
