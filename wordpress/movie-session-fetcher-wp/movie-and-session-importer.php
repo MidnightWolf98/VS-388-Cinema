@@ -64,7 +64,8 @@ function run_all_modules(){
     // Run Cleanup, only if its not the first run
     $last_run = get_option('movie_importer_last_run'); // Check if this is the first run
     if ($last_run) {
-        delete_old_sessions($wpdb); // Run Cleanup only if it's not the first run
+        delete_old_sessions($wpdb);
+        delete_old_date_taxonomies();
     }
 
     // Save the timestamp of the last run

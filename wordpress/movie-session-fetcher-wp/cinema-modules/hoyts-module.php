@@ -95,6 +95,9 @@ function hoyts_fetch_and_insert_movies() {
     foreach ( $movies as $movie ) {
         $movie_title = sanitize_text_field( $movie['name'] );
         
+        //DEBUG!!!!
+        //error_log("Processing movie $movie_title");
+
         // Use WP_Query to check if a post with the same movie title exists
         $args = array(
             'post_type'  => 'Movie', // Custom post type
@@ -102,10 +105,27 @@ function hoyts_fetch_and_insert_movies() {
             'posts_per_page' => 1 // Limit to 1 result
         );
         $query = new WP_Query( $args );
+
+        $movie_status = 'Unknown';
+
+        if ($movie['type'] == 'nowShowing') {
+            $movie_status = 'Now Showing';
+        } elseif ($movie['type'] == 'comingSoon') {
+            $movie_status = 'Coming Soon';
+        } elseif ($movie['type'] == 'advanceSale') {
+            $movie_status = 'Tickets on Sale, Release Soon';
+        } elseif ($movie['type'] == 'advanceScreening') {
+            $movie_status = 'Advance Screening';
+        }
         
         if ( $query->have_posts() ) {
-            // If the movie already exists, skip it
-            error_log("Movie already exists $movie_title ");
+            // If the movie already exists, update its status
+            $existing_movie_id = $query->posts[0]->ID;        
+
+            // Update the status taxonomy of the existing movie
+            wp_set_object_terms($existing_movie_id, sanitize_text_field($movie_status), 'status');
+            update_post_meta( $existing_movie_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
+
             wp_reset_postdata();
             continue;
         }
@@ -116,50 +136,41 @@ function hoyts_fetch_and_insert_movies() {
             continue;
         }
 
-        $movie_html = generate_movie_html( $movie_title, $movie['summary'], $movie['releaseDate'], $movie['runtime']['minutes'], $movie['genres'], $movie['rating']['id'], 'https://hoyts.com.au' . $movie['link'] );
+        // Set links
+        $movie_link = 'https://hoyts.com.au' . $movie['link'];
+        $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
         
-        // Prepare the post data
-        $post_data = array(
-            'post_title'    => $movie_title,
-            'post_content'  => $movie_html,
-            'post_status'   => 'publish',
-            'post_type'     => 'movie', // Custom post type for movies
-        );
-        
-        // Insert the post and get the post ID
-        $post_id = wp_insert_post( $post_data );
+        // Format release date 
+        list($release_date, $release_time) = explode('T', $movie['releaseDate']);
+        $release_date_obj = DateTime::createFromFormat('Y-m-d', $release_date);
+        $release_date_formatted = $release_date_obj ? $release_date_obj->format('d/m/Y') : $release_date;
 
-        // If the post was successfully created
-        if ( $post_id ) {
-            // Add additional metadata like release date, runtime, genres, etc.
-            update_post_meta( $post_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
-            update_post_meta( $post_id, 'release_date', sanitize_text_field( $movie['releaseDate'] ) );
-            update_post_meta( $post_id, 'runtime', intval( $movie['runtime']['minutes'] ) );
-            update_post_meta( $post_id, 'genres', implode( ', ', array_map( 'sanitize_text_field', $movie['genres'] ) ) );
-            update_post_meta( $post_id, 'rating', sanitize_text_field( $movie['rating']['id'] ) );
-            update_post_meta( $post_id, 'link', esc_url( 'https://hoyts.com.au' . $movie['link'] ) );
-        }
+        // Set runtime (ensure it exists, as some JSON movie objs dont have duration)
+        $movie_runtime = isset($movie['duration']) ? $movie['duration'] : "Unknown";
         
-        // LOCALLY UPLOAD POSTER IMAGE FROM URL (CURRENTLY DEACTIVATED)!!!
-        if ( !empty( $movie['posterImage'] ) ) {
-            // Upload the movie poster from the URL
-            $poster_id = upload_image_from_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'], $post_id );
-            
-            if ( $poster_id ) {
-                // If the poster was uploaded successfully, set it as the featured image
-                set_post_thumbnail( $post_id, $poster_id );
-            }
 
-            update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'] ) );
+        if(!$movie_status){
+            $movie_status = 'Unknown';
         }
 
-        // if ( !empty( $movie['posterImage'] ) ) {
-        //     // Upload the movie poster from the URL
-        //     update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.hoyts.com.au/' . $movie['posterImage'] ) );
-        // }
+        $movie_post_id = insert_movie($movie_title, 
+                                     $movie['summary'], 
+                                     $release_date_formatted, 
+                                     $movie_runtime, 
+                                     $movie['genres'], 
+                                     $movie['rating']['id'], 
+                                     $movie_link, 
+                                     $movie_poster,
+                                     $movie_status);
+
+        // Add the HoytsID as a meta field to the movie post
+        if ($movie_post_id) {
+            update_post_meta( $movie_post_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
+        }
         
         wp_reset_postdata(); // Reset the WP_Query data
     }
+
 }
 
 // Get Poster for movie (upload image from URL locally, USE AT OWN DISCRETION)
@@ -288,68 +299,20 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         $movie_post = $movie_query->posts[0]; // Get the movie post object
         $movie_post_id = $movie_post->ID; // Get the movie post ID
         
-        //attach accessibilty taxonomies to parent movie
+        // Attach accessibilty taxonomies to parent movie
         add_accessibility_to_movie($movie_post_id, $filtered_tags);
 
-        // extract date and time from the session date
+        // Prepare data to send to insert session
         list($session_date, $session_time) = explode('T', $session['date']);
         list($session_utc_date, $session_utc_time) = explode('T', $session['utcDate']);
 
         $movie_title = get_the_title($movie_post_id);
-        
-        // Prepare the session post data
-        $post_data = array(
-            'post_title'    => '"' . $movie_title . '"' . ' at Hoyts ' . $suburb . ', ' . $state . ' on ' . $session_date . ' ' . $session_time, // Title for the session post
-            'post_status'   => 'publish',
-            'post_type'     => 'session', // Custom post type for sessions
-            'post_content'  => generate_session_html($movie_title, $filtered_tags, 'Hoyts', $state, $suburb, $session_date, $session_time, esc_url( 'https://hoyts.com.au' . $session['link'])), // No content for session posts
-            'post_parent'   => $movie_post_id // Set the movie as the parent post
-        );
-        
-        // Insert the session post and get the post ID
-        $session_post_id = wp_insert_post( $post_data );
 
-        
-        
-        if ( $session_post_id ) {
-            // Store additional metadata including the session ID
-            update_post_meta( $session_post_id, 'session_id', $session_id ); // Store session ID to prevent duplicates
-            update_post_meta( $session_post_id, 'cinema_id', sanitize_text_field( $session['cinemaId'] ) );
-            update_post_meta( $session_post_id, 'session_date', sanitize_text_field( $session_date . " " . $session_time  ) );
-            update_post_meta( $session_post_id, 'utc_date', sanitize_text_field( $session['utcDate'] ) );
-            update_post_meta( $session_post_id, 'link', esc_url( 'https://hoyts.com.au' . $session['link'] ) );
-            
-            // Assign secondary tags to the Accessibility taxonomy
-            if ( !empty( $session['secondaryTags'] ) && is_array($session['secondaryTags']) ) {
-            
-                if (!empty($filtered_tags)) {
-                    foreach ($filtered_tags as $tag) {
-                        $sanitized_tag = sanitize_text_field($tag);
-                        wp_set_object_terms($session_post_id, $sanitized_tag, 'accessibility', true);
-                    }
-                }
-            }
+        $book_link = 'https://hoyts.com.au' . $session['link'];
 
-            // Assign the state to the state taxonomy if not already assigned
-            if ( !has_term( 'VIC', 'state', $session_post_id ) ) {
-                wp_set_object_terms( $session_post_id, $state, 'state', true );
-            }
-
-            // Assign 'Watergardens' to the suburb taxonomy if not already assigned
-            if ( !has_term( $suburb, 'suburb', $session_post_id ) ) {
-                wp_set_object_terms( $session_post_id, $suburb, 'suburb', true );
-            }
-
-            if ( !has_term( 'Hoyts', 'cinema', $session_post_id ) ) {
-                wp_set_object_terms( $session_post_id, 'Hoyts', 'cinema', true );
-            }
-            
-            wp_set_object_terms( $session_post_id, $session_date, 'date', true );
-            wp_set_object_terms( $session_post_id, $session_time, 'time', true );
-            wp_set_object_terms( $session_post_id, $session_utc_date, 'utc_date', true );
-            wp_set_object_terms( $session_post_id, $session_utc_time, 'utc_time', true );
-
-        }
+        // Insert the session
+        insert_session($movie_post_id, $movie_title, $filtered_tags, $session_date, $session_time, $session_utc_date, 
+                       $session_utc_time, $session_id, $book_link, $state, $suburb, 'Hoyts');
         
         wp_reset_postdata(); // Reset the WP_Query data
     }

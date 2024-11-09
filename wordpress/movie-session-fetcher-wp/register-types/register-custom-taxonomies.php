@@ -5,7 +5,7 @@
 // ********************************************************************************
 function register_movie_session_taxonomies() {
 
-    // Register the Accessibility taxonomy
+    // Register the Accessibility taxonomy Movie & Session
     $labels_accessibility = array(
         'name'              => _x( 'Accessibility', 'taxonomy general name' ),
         'singular_name'     => _x( 'Accessibility', 'taxonomy singular name' ),
@@ -31,6 +31,33 @@ function register_movie_session_taxonomies() {
     );
 
     register_taxonomy( 'accessibility', array( 'session', 'movie' ), $args_accessibility );
+
+    // Register the Status taxonomy for Movie
+    $labels_status = array(
+        'name'              => _x( 'Status', 'taxonomy general name' ),
+        'singular_name'     => _x( 'Status', 'taxonomy singular name' ),
+        'search_items'      => __( 'Search Statuses' ),
+        'all_items'         => __( 'All Statuses' ),
+        'parent_item'       => __( 'Parent Status' ),
+        'parent_item_colon' => __( 'Parent Status:' ),
+        'edit_item'         => __( 'Edit Status' ),
+        'update_item'       => __( 'Update Status' ),
+        'add_new_item'      => __( 'Add New Status' ),
+        'new_item_name'     => __( 'New Status Name' ),
+        'menu_name'         => __( 'Status' ),
+    );
+
+    $args_status = array(
+        'hierarchical'      => true, // Set to true for parent/child relationships
+        'labels'            => $labels_status,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array( 'slug' => 'status' ),
+        'show_in_rest'      => true,
+    );
+
+    register_taxonomy( 'status', array( 'movie' ), $args_status );
 
     // Register the State taxonomy
     $labels_state = array(
@@ -220,6 +247,7 @@ function register_movie_session_taxonomies() {
     );
 
     register_taxonomy( 'utc_time', array( 'session' ), $args_utc_time );
+
 
 }
 add_action( 'init', 'register_movie_session_taxonomies' );

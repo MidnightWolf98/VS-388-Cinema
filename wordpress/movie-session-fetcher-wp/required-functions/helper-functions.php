@@ -1,10 +1,10 @@
 <?php
 /* FUNCTIONS IN THIS FILE:
     1. insert_movie()
-        not yet implemented
+        Inserts a movie post with the given details
     
     2. insert_session()
-        not yet implemented
+        Inserts a session post with the given details
     
     3. upload_image_from_url()
         Downloads an image from a URL and uploads it to the media library
@@ -17,26 +17,183 @@
     
     6. generate_movie_html()
         Generates HTML content for a movie post
+    
+    7. generate_session_html()
+        Generates HTML content for a session post
+    
+    8. format_date()
+        Formats a date from 'Y-m-d' to 'd/m/Y'
+    
+    9. format_time()
+        Formats a time from 'H:i:s' to 'g:i A'
 */
 
-function insert_movie(/*add variables*/){}
 
-// 
-function insert_session($movie_id, $access_tags, $s_date, 
-                        $s_time, $utc_date, $utc_time, 
-                        $session_id, $cinema_id, $link,
-                        $state, $suburb, $cinema){}
+/* INSERT_MOVIE -> universal function to insert a movie post into the WordPress database
+    IN: $title => movie title
+        $summary => movie summary
+        $release_date => movie release date
+        $runtime => movie runtime in minutes
+        $genres => array of movie genres
+        $rating => movie rating
+        $link => (optional) URL for more information about the movie
+        $poster_url => (optional) URL of the movie poster image
+        $status => (optional) status of the movie (default: 'Unknown')
+    OUT: $post_id => ID of the inserted movie post or null if insertion failed
+*/
+function insert_movie($title, $summary, $release_date, $runtime, $genres, 
+                      $rating, $link = null, $poster_url = null, $status = 'Unknown') {
 
+    //generate the movie html
+    $movie_html = generate_movie_html( $title, $summary, $release_date, 
+                                       $runtime, $genres, $rating ,$link );
+
+    // Prepare the post data
+    $post_data = array(
+        'post_title'    => $title,
+        'post_content'  => $movie_html,
+        'post_status'   => 'publish',
+        'post_type'     => 'movie', // Custom post type for movies
+    );
+
+    $post_id = wp_insert_post( $post_data );
+
+    if ( $post_id ) {
+        // Add additional metadata like release date, runtime, genres, etc.
+        update_post_meta( $post_id, 'release_date', sanitize_text_field( $release_date ) );
+        update_post_meta( $post_id, 'runtime', intval( $runtime ) );
+        update_post_meta( $post_id, 'genres', implode( ', ', array_map( 'sanitize_text_field', $genres ) ) );
+        update_post_meta( $post_id, 'rating', sanitize_text_field( $rating ) );
+        update_post_meta( $post_id, 'link', esc_url( $link ) );
+
+        if ( !empty( $poster_url ) ) {
+            // Upload the movie poster from the URL
+            $poster_id = upload_image_from_url( $poster_url, $post_id );
+            
+            if ( $poster_id ) {
+                // If the poster was uploaded successfully, set it as the featured image
+                set_post_thumbnail( $post_id, $poster_id );
+            }
+
+            update_post_meta( $post_id, 'img_link', esc_url( $poster_url ) );   
+        }
+        
+        // Set the status taxonomy of the movie to given or default
+        wp_set_object_terms( $post_id, sanitize_text_field( $status ), 'status' );
+
+        return $post_id; // Return the post ID of the inserted movie
+    }
+    // Return nothing when the movie couldn't be inserted 
+}
+
+
+/* INSERT SESSION FUNCTION
+    IN: $movie_post_id => ID of the parent movie post
+        $movie_title => title of the movie
+        $access_tags => array of accessibility tags
+        $s_date => session date in 'Y-m-d' format
+        $s_time => session time in 'H:i:s' format
+        $utc_date => UTC date of the session in 'Y-m-d' format
+        $utc_time => UTC time of the session in 'H:i:s' format
+        $session_id => ID of the session
+        $link => (optional) URL for more information about the session
+        $state => state where the cinema is located
+        $suburb => suburb where the cinema is located
+        $cinema => name of the cinema
+    OUT: $session_post_id => ID of the inserted session post or null if insertion failed
+*/
+function insert_session($movie_post_id, $movie_title, $access_tags, $s_date, $s_time, $utc_date, $utc_time, 
+                        $session_id, $link='', $state, $suburb, $cinema ) {
+    
+    $formattted_date = format_date($s_date);
+    $formatted_time = format_time($s_time);
+    
+    // Prepare the post data
+    $post_data = array(
+        'post_title'    => '"' . $movie_title . '"' . ' at '. $cinema . ' ' . $suburb . ', ' . $state . ' on ' . $formattted_date . ' ' . $formatted_time, // Title for the session post
+        'post_status'   => 'publish',
+        'post_type'     => 'session', // Custom post type for sessions
+        'post_content'  => generate_session_html($movie_title, $access_tags, $cinema, $state, $suburb, $formattted_date, $formatted_time, esc_url( $link )), // No content for session posts
+        'post_parent'   => $movie_post_id // Set the movie as the parent post
+    );
+
+    // Insert the session post and get the post ID
+    $session_post_id = wp_insert_post( $post_data );
+
+    if ( $session_post_id ) {
+        // Store additional metadata including the session ID
+        update_post_meta( $session_post_id, 'session_id', $session_id ); // Store session ID to prevent duplicates
+        update_post_meta( $session_post_id, 'session_date', sanitize_text_field( $s_date . " " . $s_time  ) );
+        update_post_meta( $session_post_id, 'utc_date', sanitize_text_field( $utc_date) );
+        update_post_meta( $session_post_id, 'link', esc_url( $link ) );
+        
+        // Assign secondary tags to the Accessibility taxonomy
+        if ( !empty( $access_tags ) && is_array( $access_tags ) ) {
+        
+            if (!empty($filtered_tags)) {
+                foreach ($filtered_tags as $tag) {
+                    $sanitized_tag = sanitize_text_field($tag);
+                    wp_set_object_terms($session_post_id, $sanitized_tag, 'accessibility', true);
+                }
+            }
+        }
+
+        // Assign the state to the state taxonomy if not already assigned
+        if ( !has_term( $state, 'state', $session_post_id ) ) {
+            wp_set_object_terms( $session_post_id, $state, 'state', true );
+        }
+
+        // Assign given suburb to the suburb taxonomy if not already assigned
+        if ( !has_term( $suburb, 'suburb', $session_post_id ) ) {
+            wp_set_object_terms( $session_post_id, $suburb, 'suburb', true );
+        }
+
+        // Assign given cinema to the suburb taxonomy if not already assigned
+        if ( !has_term( $cinema, 'cinema', $session_post_id ) ) {
+            wp_set_object_terms( $session_post_id, $cinema, 'cinema', true );
+        }
+        
+        wp_set_object_terms( $session_post_id, $s_date, 'date', true );
+        wp_set_object_terms( $session_post_id, $s_time, 'time', true );
+        wp_set_object_terms( $session_post_id, $utc_date, 'utc_date', true );
+        wp_set_object_terms( $session_post_id, $utc_time, 'utc_time', true );
+
+    }
+
+}
+
+
+/* UPLOAD IMAGE FROM URL FUNCTION
+    IN: $image_url => URL of the image to be downloaded
+        $post_id => ID of the post to attach the image to
+
+    OUT: $attachment_id => ID of the uploaded image attachment or false if upload failed
+*/                
 function upload_image_from_url($image_url, $post_id) {
+    
+    // Get the file name of the image
+    $file_name = basename($image_url);
+
     // Check if the image has already been uploaded
-    $existing_attachment_id = get_attachment_id_by_filename(basename($image_url));
+    $existing_attachment_id = get_attachment_id_by_filename($file_name);
     if ($existing_attachment_id) {
         // If the image is already uploaded, return the existing attachment ID
         return $existing_attachment_id;
     }
 
-    // Get the file name of the image
-    $file_name = basename($image_url);
+    // Make a HEAD request to get the file headers
+    $head_response = wp_remote_head($image_url);
+
+    if (is_wp_error($head_response)) {
+        return false; // Handle error if the HEAD request failed
+    }
+
+    // Get the Content-Length header to check the file size
+    $content_length = wp_remote_retrieve_header($head_response, 'content-length');
+
+    if ($content_length && $content_length > 15728640) { // 10 MB limit
+        return null; // return no poster if the file size is too larges
+    }
     
     // Download the image from the URL
     $response = wp_remote_get($image_url);
@@ -90,6 +247,10 @@ function upload_image_from_url($image_url, $post_id) {
     return $attachment_id; // Return the attachment ID of the image
 }
 
+/* GET ATTACHMENT ID BY FILENAME FUNCTION
+    IN: $file_name => name of the image file
+    OUT: $attachment_id => ID of the image attachment or null if not found
+*/
 function get_attachment_id_by_filename($file_name) {
     global $wpdb;
     $attachment_id = $wpdb->get_var($wpdb->prepare("
@@ -100,6 +261,11 @@ function get_attachment_id_by_filename($file_name) {
     return $attachment_id;
 }
 
+/* ADD ACCESSIBILITY TO MOVIE FUNCTION
+    IN: $movie_id => ID of the movie post
+        $new_accessibility_terms => array of new accessibility terms to add
+    OUT: void
+*/
 function add_accessibility_to_movie($movie_id, $new_accessibility_terms) {
     // Get current accessibility terms for the movie
     $current_terms = wp_get_post_terms($movie_id, 'accessibility', array('fields' => 'names'));
@@ -118,6 +284,16 @@ function add_accessibility_to_movie($movie_id, $new_accessibility_terms) {
     }
 }
 
+/* GENERATE MOVIE HTML FUNCTION
+    IN: $movie_title => title of the movie
+        $summary => summary of the movie
+        $release_date => release date of the movie
+        $runtime => runtime of the movie in minutes
+        $genres => array of genres associated with the movie
+        $rating => rating of the movie
+        $link => URL for more information about the movie
+    OUT: $html => generated HTML content for the movie
+*/
 function generate_movie_html($movie_title, $summary, $release_date, $runtime, $genres, $rating, $link) {
     // Sanitize the input fields
     $movie_title = sanitize_text_field($movie_title);
@@ -130,7 +306,6 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
 
     // Generate the HTML content
     $html = '<div class="movie">';
-    $html .= '<h2>' . $movie_title . '</h2>';
     $html .= '<p>' . $summary . '</p>';
     $html .= '<p><strong>Release Date:</strong> ' . $release_date . '</p>';
 
@@ -147,6 +322,17 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
     return $html;
 }
 
+/* GENERATE SESSION HTML FUNCTION
+    IN: $movie_title => title of the movie
+        $acc_tags => array of accessibility tags
+        $cinema => name of the cinema
+        $state => state where the cinema is located
+        $suburb => suburb where the cinema is located
+        $s_date => session date, MUST PRE FORMATTED
+        $s_time => session time, MUST BE PRE FORMATTED
+        $link => URL to book the session
+    OUT: $html => generated HTML content for the session
+*/
 function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb, $s_date, $s_time, $link) {
     // Sanitize the input fields
     $cinema = sanitize_text_field($cinema);
@@ -158,7 +344,6 @@ function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb
 
     // Generate the HTML content
     $html = '<div class="session">';
-    $html .= '<h3>' . $movie_title . " at " . $cinema . '</h3>';
     $html .= '<p><strong>Accessibility:</strong> ' . implode(', ', $acc_tags) . '</p>';
     $html .= '<p><strong>Location:</strong> ' . $suburb . ', ' . $state . '</p>';
     $html .= '<p><strong>Date:</strong> ' . $s_date . '</p>';
@@ -167,6 +352,24 @@ function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb
     $html .= '</div>';
 
     return $html;
+}
+
+/* FORMAT DATE FUNCTION
+    IN: $date => date in 'Y-m-d' format
+    OUT: $formatted_date => date in 'd/m/Y' format or original date if invalid
+*/
+function format_date($date) {
+    $date_obj = DateTime::createFromFormat('Y-m-d', $date);
+    return $date_obj ? $date_obj->format('d/m/Y') : $date;
+}
+
+/* FORMAT TIME FUNCTION
+    IN: $time => time in 'H:i:s' format
+    OUT: $formatted_time => time in 'g:i A' format or original time if invalid
+*/
+function format_time($time) {
+    $time_obj = DateTime::createFromFormat('H:i:s', $time);
+    return $time_obj ? $time_obj->format('g:i A') : $time;
 }
 
 ?>
