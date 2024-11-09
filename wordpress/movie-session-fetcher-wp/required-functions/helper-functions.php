@@ -81,12 +81,16 @@ function insert_movie($title, $summary, $release_date, $runtime, $genres,
 // UNIMPLEMENTED
 function insert_session($movie_post_id, $movie_title, $access_tags, $s_date, $s_time, $utc_date, $utc_time, 
                         $session_id, $link='', $state, $suburb, $cinema ) {
+    
+    $formattted_date = format_date($s_date);
+    $formatted_time = format_time($s_time);
+    
     // Prepare the post data
     $post_data = array(
-        'post_title'    => '"' . $movie_title . '"' . ' at '. $cinema . $suburb . ', ' . $state . ' on ' . $s_date . ' ' . $s_time, // Title for the session post
+        'post_title'    => '"' . $movie_title . '"' . ' at '. $cinema . ' ' . $suburb . ', ' . $state . ' on ' . $formattted_date . ' ' . $formatted_time, // Title for the session post
         'post_status'   => 'publish',
         'post_type'     => 'session', // Custom post type for sessions
-        'post_content'  => generate_session_html($movie_title, $access_tags, $cinema, $state, $suburb, $s_date, $s_time, esc_url( $link )), // No content for session posts
+        'post_content'  => generate_session_html($movie_title, $access_tags, $cinema, $state, $suburb, $formattted_date, $formatted_time, esc_url( $link )), // No content for session posts
         'post_parent'   => $movie_post_id // Set the movie as the parent post
     );
 
@@ -314,24 +318,35 @@ function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb
     $s_time = sanitize_text_field($s_time);
     $link = esc_url($link);
 
-    // Format the release date to a more readable format
-    $release_date_obj = DateTime::createFromFormat('Y-m-d', $s_date);
-    $release_date_formatted = $release_date_obj ? $release_date_obj->format('d/m/Y') : $s_date;
+    //MOVED INTO FUNCTION!!
+    // // Format the release date to a more readable format
+    // $release_date_obj = DateTime::createFromFormat('Y-m-d', $s_date);
+    // $release_date_formatted = $release_date_obj ? $release_date_obj->format('d/m/Y') : $s_date;
 
-    // Format the time to 12-hour format
-    $time_obj = DateTime::createFromFormat('H:i:s', $s_time);
-    $s_time_formatted = $time_obj ? $time_obj->format('g:i A') : $s_time;
+    // // Format the time to 12-hour format
+    // $time_obj = DateTime::createFromFormat('H:i:s', $s_time);
+    // $s_time_formatted = $time_obj ? $time_obj->format('g:i A') : $s_time;
 
     // Generate the HTML content
     $html = '<div class="session">';
     $html .= '<p><strong>Accessibility:</strong> ' . implode(', ', $acc_tags) . '</p>';
     $html .= '<p><strong>Location:</strong> ' . $suburb . ', ' . $state . '</p>';
-    $html .= '<p><strong>Date:</strong> ' . $release_date_formatted . '</p>';
-    $html .= '<p><strong>Time:</strong> ' . $s_time_formatted . '</p>';
+    $html .= '<p><strong>Date:</strong> ' . $s_date . '</p>';
+    $html .= '<p><strong>Time:</strong> ' . $s_time . '</p>';
     $html .= '<p><a style"colour:green;" href="' . $link . '" target="_blank">Book Now</a></p>';
     $html .= '</div>';
 
     return $html;
+}
+
+function format_date($date) {
+    $date_obj = DateTime::createFromFormat('Y-m-d', $date);
+    return $date_obj ? $date_obj->format('d/m/Y') : $date;
+}
+
+function format_time($time) {
+    $time_obj = DateTime::createFromFormat('H:i:s', $time);
+    return $time_obj ? $time_obj->format('g:i A') : $time;
 }
 
 ?>
