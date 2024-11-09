@@ -19,6 +19,19 @@
         Generates HTML content for a movie post
 */
 
+
+/* INSERT_MOVIE -> universal function to insert a movie post into the WordPress database
+    IN: $title => movie title
+        $summary => movie summary
+        $release_date => movie release date
+        $runtime => movie runtime in minutes
+        $genres => array of movie genres
+        $rating => movie rating
+        $link => (optional) URL for more information about the movie
+        $poster_url => (optional) URL of the movie poster image
+        $status => (optional) status of the movie (default: 'Unknown')
+    OUT: $post_id => ID of the inserted movie post or null if insertion failed
+*/
 function insert_movie($title, $summary, $release_date, $runtime, $genres, $rating, $link = null, $poster_url = null, $status = 'Unknown') {
 
     //generate the movie html
@@ -63,12 +76,20 @@ function insert_movie($title, $summary, $release_date, $runtime, $genres, $ratin
     // Return nothing when the movie couldn't be inserted 
 }
 
+
 // UNIMPLEMENTED
 function insert_session($movie_id, $access_tags, $s_date, 
                         $s_time, $utc_date, $utc_time, 
                         $session_id, $cinema_id, $link,
                         $state, $suburb, $cinema){}
 
+
+/* UPLOAD IMAGE FROM URL FUNCTION
+    IN: $image_url => URL of the image to be downloaded
+        $post_id => ID of the post to attach the image to
+
+    OUT: $attachment_id => ID of the uploaded image attachment or false if upload failed
+*/                
 function upload_image_from_url($image_url, $post_id) {
     // Check if the image has already been uploaded
     $existing_attachment_id = get_attachment_id_by_filename(basename($image_url));
@@ -132,6 +153,10 @@ function upload_image_from_url($image_url, $post_id) {
     return $attachment_id; // Return the attachment ID of the image
 }
 
+/* GET ATTACHMENT ID BY FILENAME FUNCTION
+    IN: $file_name => name of the image file
+    OUT: $attachment_id => ID of the image attachment or null if not found
+*/
 function get_attachment_id_by_filename($file_name) {
     global $wpdb;
     $attachment_id = $wpdb->get_var($wpdb->prepare("
@@ -142,6 +167,11 @@ function get_attachment_id_by_filename($file_name) {
     return $attachment_id;
 }
 
+/* ADD ACCESSIBILITY TO MOVIE FUNCTION
+    IN: $movie_id => ID of the movie post
+        $new_accessibility_terms => array of new accessibility terms to add
+    OUT: void
+*/
 function add_accessibility_to_movie($movie_id, $new_accessibility_terms) {
     // Get current accessibility terms for the movie
     $current_terms = wp_get_post_terms($movie_id, 'accessibility', array('fields' => 'names'));
@@ -160,6 +190,16 @@ function add_accessibility_to_movie($movie_id, $new_accessibility_terms) {
     }
 }
 
+/* GENERATE MOVIE HTML FUNCTION
+    IN: $movie_title => title of the movie
+        $summary => summary of the movie
+        $release_date => release date of the movie
+        $runtime => runtime of the movie in minutes
+        $genres => array of genres associated with the movie
+        $rating => rating of the movie
+        $link => URL for more information about the movie
+    OUT: $html => generated HTML content for the movie
+*/
 function generate_movie_html($movie_title, $summary, $release_date, $runtime, $genres, $rating, $link) {
     // Sanitize the input fields
     $movie_title = sanitize_text_field($movie_title);
@@ -189,6 +229,17 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
     return $html;
 }
 
+/* GENERATE SESSION HTML FUNCTION
+    IN: $movie_title => title of the movie
+        $acc_tags => array of accessibility tags
+        $cinema => name of the cinema
+        $state => state where the cinema is located
+        $suburb => suburb where the cinema is located
+        $s_date => session date
+        $s_time => session time
+        $link => URL to book the session
+    OUT: $html => generated HTML content for the session
+*/
 function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb, $s_date, $s_time, $link) {
     // Sanitize the input fields
     $cinema = sanitize_text_field($cinema);
@@ -200,7 +251,6 @@ function generate_session_html($movie_title, $acc_tags, $cinema, $state, $suburb
 
     // Generate the HTML content
     $html = '<div class="session">';
-    $html .= '<h3>' . $movie_title . " at " . $cinema . '</h3>';
     $html .= '<p><strong>Accessibility:</strong> ' . implode(', ', $acc_tags) . '</p>';
     $html .= '<p><strong>Location:</strong> ' . $suburb . ', ' . $state . '</p>';
     $html .= '<p><strong>Date:</strong> ' . $s_date . '</p>';
