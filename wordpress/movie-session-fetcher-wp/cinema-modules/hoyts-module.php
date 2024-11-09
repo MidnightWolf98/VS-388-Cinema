@@ -139,8 +139,12 @@ function hoyts_fetch_and_insert_movies() {
         
         $movie_status = isset($statuses[$movie['type']]) ? $statuses[$movie['type']] : 'Unknown';
         
-        //DEBUG
-        //error_log("Movie Status: " . $movie['type']);
+        // Format release date 
+        list($release_date, $release_time) = explode('T', $movie['releaseDate']);
+        $release_date_obj = DateTime::createFromFormat('Y-m-d', $release_date);
+        $release_date_formatted = $release_date_obj ? $release_date_obj->format('d/m/Y') : $release_date;
+
+        
 
         if(!$movie_status){
             $movie_status = 'Unknown';
@@ -148,7 +152,7 @@ function hoyts_fetch_and_insert_movies() {
 
         $movie_post_id = insert_movie($movie_title, 
                                      $movie['summary'], 
-                                     $movie['releaseDate'], 
+                                     $release_date_formatted, 
                                      $movie['duration'], 
                                      $movie['genres'], 
                                      $movie['rating']['id'], 

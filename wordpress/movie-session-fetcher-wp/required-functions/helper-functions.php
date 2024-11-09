@@ -227,7 +227,6 @@ function generate_movie_html($movie_title, $summary, $release_date, $runtime, $g
 
     // Generate the HTML content
     $html = '<div class="movie">';
-    $html .= '<h2>' . $movie_title . '</h2>';
     $html .= '<p>' . $summary . '</p>';
     $html .= '<p><strong>Release Date:</strong> ' . $release_date . '</p>';
 
