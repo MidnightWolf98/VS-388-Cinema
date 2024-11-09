@@ -152,6 +152,7 @@ function hoyts_fetch_and_insert_movies() {
         $release_date_obj = DateTime::createFromFormat('Y-m-d', $release_date);
         $release_date_formatted = $release_date_obj ? $release_date_obj->format('d/m/Y') : $release_date;
 
+        $movie_runtime = isset($movie['duration']) ? $movie['duration'] : "Unknown";
         
 
         if(!$movie_status){
@@ -161,7 +162,7 @@ function hoyts_fetch_and_insert_movies() {
         $movie_post_id = insert_movie($movie_title, 
                                      $movie['summary'], 
                                      $release_date_formatted, 
-                                     $movie['duration'], 
+                                     $movie_runtime, 
                                      $movie['genres'], 
                                      $movie['rating']['id'], 
                                      $movie_link, 

@@ -81,7 +81,9 @@ function insert_movie($title, $summary, $release_date, $runtime, $genres, $ratin
 function insert_session($movie_id, $access_tags, $s_date, 
                         $s_time, $utc_date, $utc_time, 
                         $session_id, $cinema_id, $link,
-                        $state, $suburb, $cinema){}
+                        $state, $suburb, $cinema){
+    
+}
 
 
 /* UPLOAD IMAGE FROM URL FUNCTION
