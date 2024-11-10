@@ -95,10 +95,6 @@ function hoyts_fetch_and_insert_movies() {
     foreach ( $movies as $movie ) {
         $movie_title = sanitize_text_field( $movie['name'] );
 
-        // Set links
-        $movie_link = 'https://hoyts.com.au' . $movie['link'];
-        $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
-
         //DEBUG!!!!
         //error_log("Processing movie $movie_title");
 
@@ -122,6 +118,16 @@ function hoyts_fetch_and_insert_movies() {
             $movie_status = 'Advance Screening';
         }
         
+        if ( empty( $movie['releaseDate'] ) || empty($movie['posterImage']) ) {
+            // skip movies that don't have a release date or no poster (these are speculated movies w/ no poster)
+            // even further before coming soon movies. 
+            continue;
+        }
+
+        // Set links
+        $movie_link = 'https://hoyts.com.au' . $movie['link'];
+        $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
+
         if ( $query->have_posts() ) {
             // If the movie already exists, update its status
             $existing_movie_id = $query->posts[0]->ID;        
@@ -133,8 +139,7 @@ function hoyts_fetch_and_insert_movies() {
             // Check if a poster is set for the movie post type
             if (!has_post_thumbnail($existing_movie_id)) {
                 // If no poster is set, send the request to set the poster
-                $poster_url = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
-                $poster_id = upload_image_from_url($poster_url, $existing_movie_id, $movie_title);
+                $poster_id = upload_image_from_url($movie_poster, $existing_movie_id, $movie_title);
                 if ($poster_id) {
                     set_post_thumbnail($existing_movie_id, $poster_id);
                     error_log("Poster set for movie $movie_title");
@@ -144,12 +149,6 @@ function hoyts_fetch_and_insert_movies() {
             }
 
             wp_reset_postdata();
-            continue;
-        }
-
-        if ( empty( $movie['releaseDate'] ) || empty($movie['posterImage']) ) {
-            // skip movies that don't have a release date or no poster (these are speculated movies w/ no poster)
-            // even further before coming soon movies. 
             continue;
         }
 

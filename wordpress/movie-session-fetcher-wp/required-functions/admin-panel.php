@@ -235,10 +235,12 @@ function movie_importer_admin_page() {
     }
     if ( isset( $_POST['import_movies'] ) ) {
         hoyts_fetch_and_insert_movies();
+        village_get_all_movies();
         echo '<div class="notice notice-success is-dismissible"><p>Movies Imported Successfully!</p></div>';
     }
     if ( isset( $_POST['import_sessions'] ) ) {
         hoyts_fetch_and_insert_sessions_all_venues();
+        village_fetch_and_insert_sessions_all_venues();
         echo '<div class="notice notice-success is-dismissible"><p>Sessions Imported Successfully!</p></div>';
     }
     if ( isset( $_POST['run_cleanup'] ) ) {

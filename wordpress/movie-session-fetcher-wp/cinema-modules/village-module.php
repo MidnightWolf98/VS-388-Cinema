@@ -57,7 +57,7 @@
         }
     }
 
-    function village_get_all_movies($village_session_id) {
+    function village_get_all_movies($village_session_id = '') {
 
         // Increase time limit to 5 minutes for this operation
         set_time_limit(600); 
@@ -131,7 +131,7 @@
     // ******************************* Sessions Fetcher *******************************
     // ********************************************************************************
     
-    function village_fetch_and_insert_sessions_all_venues($village_session_id){
+    function village_fetch_and_insert_sessions_all_venues($village_session_id = ''){
         global $village_venues;
         foreach ($village_venues as $vil_venue) {
             village_fetch_and_insert_sessions($vil_venue->id, $vil_venue->state, $vil_venue->suburb);

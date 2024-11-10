@@ -195,8 +195,7 @@ function upload_image_from_url($image_url, $post_id, $movie_title='') {
     $content_length = wp_remote_retrieve_header($head_response, 'content-length');
 
     if ($content_length && $content_length > 27262976) { // 26 MB limit
-        $placeholder_id = create_placeholder_poster($movie_title);
-        return $placeholder_id; // return no poster if the file size is too larges
+        $image_url = 'https://via.placeholder.com/300x450?text=' . urlencode($movie_title);
     }
     
     // Download the image from the URL
@@ -378,9 +377,8 @@ function format_time($time) {
 
 function create_placeholder_poster($movie_title) {
     // Create a placeholder image for the movie poster
-    $placeholder_url = 'https://via.placeholder.com/300x450?text=' . urlencode($movie_title);
-    $placeholder_id = upload_image_from_url($placeholder_url, 0);
-    return $placeholder_id;
+    
+    
 
 }
 
