@@ -103,23 +103,23 @@
                 'posts_per_page' => 1 // Limit to 1 result
             );
             $query = new WP_Query( $args );
-        }
 
-        // village id to exisitng post
-        if ( $query->have_posts() ) {
-            // If the movie already exists, update its status
-            $existing_movie_id = $query->posts[0]->ID;        
+            // village id to exisitng post
+            if ( $query->have_posts() ) {
+                // If the movie already exists, update its status
+                $existing_movie_id = $query->posts[0]->ID;        
 
-            // Update the status taxonomy of the existing movie
-            update_post_meta( $existing_movie_id, 'villageID', sanitize_text_field( $movie['MovieId'] ) ); // Store vistaId as HoytsID
+                // Update the status taxonomy of the existing movie
+                update_post_meta( $existing_movie_id, 'villageID', sanitize_text_field( $movie['MovieId'] ) ); // Store vistaId as HoytsID
 
-            wp_reset_postdata();
-            continue;
-        }
+                wp_reset_postdata();
+                continue;
+            }
+            
+            //ADD NEW MOVIE POST CODE HERE
 
-        //ADD NEW MOVIE POST CODE HERE
-
-    }
+        } // End of movie loop
+    } // End of function - village_get_movies_from_api
     
     // ********************************************************************************
     // ******************************* Sessions Fetcher *******************************
