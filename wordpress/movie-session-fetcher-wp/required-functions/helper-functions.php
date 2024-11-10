@@ -68,7 +68,7 @@ function insert_movie($title, $summary, $release_date, $runtime, $genres,
 
         if ( !empty( $poster_url ) ) {
             // Upload the movie poster from the URL
-            $poster_id = upload_image_from_url( $poster_url, $post_id );
+            $poster_id = upload_image_from_url( $poster_url, $post_id, $title );
             
             if ( $poster_id ) {
                 // If the poster was uploaded successfully, set it as the featured image
@@ -76,6 +76,12 @@ function insert_movie($title, $summary, $release_date, $runtime, $genres,
             }
 
             update_post_meta( $post_id, 'img_link', esc_url( $poster_url ) );   
+        }
+
+        else{
+            // Create a placeholder image for the movie poster
+            $placeholder_id = create_placeholder_poster($title);
+            set_post_thumbnail($post_id, $placeholder_id);
         }
         
         // Set the status taxonomy of the movie to given or default
@@ -166,7 +172,7 @@ function insert_session($movie_post_id, $movie_title, $access_tags, $s_date, $s_
 
     OUT: $attachment_id => ID of the uploaded image attachment or false if upload failed
 */                
-function upload_image_from_url($image_url, $post_id) {
+function upload_image_from_url($image_url, $post_id, $movie_title='') {
     
     // Get the file name of the image
     $file_name = basename($image_url);
@@ -188,8 +194,9 @@ function upload_image_from_url($image_url, $post_id) {
     // Get the Content-Length header to check the file size
     $content_length = wp_remote_retrieve_header($head_response, 'content-length');
 
-    if ($content_length && $content_length > 15728640) { // 10 MB limit
-        return null; // return no poster if the file size is too larges
+    if ($content_length && $content_length > 27262976) { // 26 MB limit
+        $placeholder_id = create_placeholder_poster($movie_title);
+        return $placeholder_id; // return no poster if the file size is too larges
     }
     
     // Download the image from the URL
@@ -367,6 +374,14 @@ function format_date($date) {
 function format_time($time) {
     $time_obj = DateTime::createFromFormat('H:i:s', $time);
     return $time_obj ? $time_obj->format('g:i A') : $time;
+}
+
+function create_placeholder_poster($movie_title) {
+    // Create a placeholder image for the movie poster
+    $placeholder_url = 'https://via.placeholder.com/300x450?text=' . urlencode($movie_title);
+    $placeholder_id = upload_image_from_url($placeholder_url, 0);
+    return $placeholder_id;
+
 }
 
 ?>

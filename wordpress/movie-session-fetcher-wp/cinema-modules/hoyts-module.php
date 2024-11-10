@@ -94,7 +94,11 @@ function hoyts_fetch_and_insert_movies() {
     // Loop through the movies
     foreach ( $movies as $movie ) {
         $movie_title = sanitize_text_field( $movie['name'] );
-        
+
+        // Set links
+        $movie_link = 'https://hoyts.com.au' . $movie['link'];
+        $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
+
         //DEBUG!!!!
         //error_log("Processing movie $movie_title");
 
@@ -126,6 +130,19 @@ function hoyts_fetch_and_insert_movies() {
             wp_set_object_terms($existing_movie_id, sanitize_text_field($movie_status), 'status');
             update_post_meta( $existing_movie_id, 'HoytsID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as HoytsID
 
+            // Check if a poster is set for the movie post type
+            if (!has_post_thumbnail($existing_movie_id)) {
+                // If no poster is set, send the request to set the poster
+                $poster_url = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
+                $poster_id = upload_image_from_url($poster_url, $existing_movie_id, $movie_title);
+                if ($poster_id) {
+                    set_post_thumbnail($existing_movie_id, $poster_id);
+                    error_log("Poster set for movie $movie_title");
+                } else {
+                    error_log("Failed to set poster for movie $movie_title");
+                }
+            }
+
             wp_reset_postdata();
             continue;
         }
@@ -136,10 +153,6 @@ function hoyts_fetch_and_insert_movies() {
             continue;
         }
 
-        // Set links
-        $movie_link = 'https://hoyts.com.au' . $movie['link'];
-        $movie_poster = 'https://imgix.hoyts.com.au/' . $movie['posterImage'];
-        
         // Format release date 
         list($release_date, $release_time) = explode('T', $movie['releaseDate']);
         $release_date_obj = DateTime::createFromFormat('Y-m-d', $release_date);
