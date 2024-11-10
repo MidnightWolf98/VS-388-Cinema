@@ -1,34 +1,105 @@
 <?php
-    //Village Cinema Module WIPPPPPPP
-    function village_fetch_all_movies_and_sessions(/*add variables*/){}
 
-    function village_fetch_and_insert_movies() {
+    // Import venues file 
+    require_once plugin_dir_path(__FILE__) . 'village-venues.php';
+
+    // Village Cinema Module 
+    function village_fetch_all_movies_and_sessions(){
+        // Get the session key
+        $village_session_id = village_get_session_key();
+
+        // Check if the session key is available
+        if (empty($village_session_id)) {
+            error_log("Village Module: Session Key not available, unable to fetch movies and sessions.");
+            return;
+        }
+
+        // Fetch all movies
+        village_get_all_movies($village_session_id);
+
+        // Fetch all sessions
+        village_fetch_and_insert_sessions_all_venues($village_session_id);
+    }
+    
+    function village_get_session_key(){
+        // Get the Session Key
+        $homepage = file_get_contents('https://villagecinemas.com.au/');
+
+        if ($homepage === false) {
+            error_log("Village Module: Failed to retrieve the homepage for session key.");
+            return;
+        }
+
+        // Create a new DOMDocument instance
+        $dom = new DOMDocument();
+
+        // Suppress errors due to malformed HTML
+        libxml_use_internal_errors(true);
+
+        // Load the HTML into the DOMDocument
+        $dom->loadHTML($homepage);
+
+        // Clear the libxml error buffer
+        libxml_clear_errors();
+
+        // Create a new DOMXPath instance
+        $xpath = new DOMXPath($dom);
+
+        // Query for the input element with the id 'user-session-id'
+        $input = $xpath->query('//input[@id="user-session-id"]');
+
+        if ($input->length > 0) {
+            // Get the value of the input element that contains the session key
+            $village_session_id = $input->item(0)->getAttribute('value');
+            return $village_session_id;
+        } else {
+            error_log("Village Module: Input element with id 'user-session-id' not found, Session Key not available.");
+        }
+    }
+
+    function village_get_all_movies($village_session_id) {
 
         // Increase time limit to 5 minutes for this operation
-        set_time_limit(600);
-    
-        // Define the API endpoint
-        $api_url = 'https://api.village.com.au/au/movies'; // Replace with your actual API URL
+        set_time_limit(600); 
         
-        // Fetch the JSON data from the API
-        $response = wp_remote_get( $api_url );
+        //api endpoints
+        $api_url_now_showing = 'https://villagecinemas.com.au/api/film/getMoviesNowShowing?userSessionId=';
+        $api_url_coming_soon = 'https://villagecinemas.com.au/api/film/getMoviesComingSoon?userSessionId=';
+
+        village_get_movies_from_api($api_url_now_showing);
+        village_get_movies_from_api($api_url_coming_soon);
+    }
+
+    function village_get_movies_from_api($api_url){
         
-        if ( is_wp_error( $response ) ) {
-            // Handle error in API request
+        set_time_limit(600); // Increase time limit to 5 minutes for this operation
+
+        // Get JSON from given API
+        $response = wp_remote_get($api_url);
+
+        // Error Check
+        if (is_wp_error($response)) {
+            error_log("Village Module: Failed to retrieve movies from " . $api_url);
             return;
         }
-        
-        // Decode the JSON response
-        $movies = json_decode( wp_remote_retrieve_body( $response ), true );
-        
-        if ( empty( $movies ) ) {
+
+        //Decode JSON
+        $movies = json_decode( wp_remote_retrieve_body( $response ), true)['Items'];
+
+        // Empty Check
+        if (empty($movies)) {
+            error_log("Village Module: No movies found in the response from " . $api_url);
             return;
         }
-        
-        // Loop through the movies
-        foreach ( $movies as $movie ) {
-            $movie_title = sanitize_text_field( $movie['name'] );
-            
+
+        // Loop thorugh movies
+        foreach ($movies as $movie) {
+
+            // DEBUG - Log the movie being processed
+            error_log("Village Module: Processing movie " . $movie['Title']);
+
+            $movie_title = sanitize_text_field( $movie['Title'] );
+
             // Use WP_Query to check if a post with the same movie title exists
             $args = array(
                 'post_type'  => 'Movie', // Custom post type
@@ -36,78 +107,34 @@
                 'posts_per_page' => 1 // Limit to 1 result
             );
             $query = new WP_Query( $args );
-            
+
+            // village id to exisitng post
             if ( $query->have_posts() ) {
-                // If the movie already exists, skip it
-                error_log("Movie already exists $movie_title ");
+                // If the movie already exists, update its status
+                $existing_movie_id = $query->posts[0]->ID;        
+
+                // Update the status taxonomy of the existing movie
+                update_post_meta( $existing_movie_id, 'villageID', sanitize_text_field( $movie['MovieId'] ) ); // Store vistaId as HoytsID
+
                 wp_reset_postdata();
                 continue;
             }
-    
-            if ( empty( $movie['releaseDate'] ) || empty($movie['posterImage']) ) {
-                // skip movies that don't have a release date or no poster (these are speculated movies w/ no poster)
-                // even further before coming soon movies. 
-                continue;
-            }
-    
-            $movie_html = generate_movie_html( $movie_title, $movie['summary'], $movie['releaseDate'], $movie['runtime']['minutes'], $movie['genres'], $movie['rating']['id'], '' . $movie['link'] );
-            
-            // Prepare the post data
-            $post_data = array(
-                'post_title'    => $movie_title,
-                'post_content'  => $movie_html,
-                'post_status'   => 'publish',
-                'post_type'     => 'movie', // Custom post type for movies
-            );
-            
-            // Insert the post and get the post ID
-            $post_id = wp_insert_post( $post_data );
-    
-            // If the post was successfully created
-            if ( $post_id ) {
-                // Add additional metadata like release date, runtime, genres, etc.
-                update_post_meta( $post_id, 'VillageID', sanitize_text_field( $movie['vistaId'] ) ); // Store vistaId as VilageID
-                update_post_meta( $post_id, 'release_date', sanitize_text_field( $movie['releaseDate'] ) );
-                update_post_meta( $post_id, 'runtime', intval( $movie['runtime']['minutes'] ) );
-                update_post_meta( $post_id, 'genres', implode( ', ', array_map( 'sanitize_text_field', $movie['genres'] ) ) );
-                update_post_meta( $post_id, 'rating', sanitize_text_field( $movie['rating']['id'] ) );
-                update_post_meta( $post_id, 'link', '' );
-            }
-            
-            // LOCALLY UPLOAD POSTER IMAGE FROM URL (CURRENTLY DEACTIVATED)!!!
-            if ( !empty( $movie['posterImage'] ) ) {
-                // Upload the movie poster from the URL
-                $poster_id = upload_image_from_url( 'https://imgix.village.com.au/' . $movie['posterImage'], $post_id );
-                
-                if ( $poster_id ) {
-                    // If the poster was uploaded successfully, set it as the featured image
-                    set_post_thumbnail( $post_id, $poster_id );
-                }
-    
-                update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.village.com.au/' . $movie['posterImage'] ) );
-            }
-    
-            // if ( !empty( $movie['posterImage'] ) ) {
-            //     // Upload the movie poster from the URL
-            //     update_post_meta( $post_id, 'img_link', esc_url( 'https://imgix.village.com.au/' . $movie['posterImage'] ) );
-            // }
-            
-            wp_reset_postdata(); // Reset the WP_Query data
-        }
-    }
-    
-    // Get Poster for movie (upload image from URL locally, USE AT OWN DISCRETION)
-    // CURRENTLY DEAVTICATED -> USES TOO MUCH RESOURCES! 
-    // CHANGED TO JSUT ADD LINK FOR IMAGE TO MOVIE
+
+            // **********************************
+            // TODO: ADD NEW MOVIE POST CODE HERE
+            // **********************************
+
+        } // End of movie loop
+    } // End of function - village_get_movies_from_api
     
     // ********************************************************************************
     // ******************************* Sessions Fetcher *******************************
     // ********************************************************************************
     
-    function village_fetch_and_insert_sessions_all_venues(){
-        global $venues;
-        foreach($venues as $venue){
-            village_fetch_and_insert_sessions($venue->code, $venue->state, $venue->suburb);
+    function village_fetch_and_insert_sessions_all_venues($village_session_id){
+        global $village_venues;
+        foreach ($village_venues as $vil_venue) {
+            village_fetch_and_insert_sessions($vil_venue->id, $vil_venue->state, $vil_venue->suburb);
         }
     }
     
@@ -116,178 +143,126 @@
     
     // IN: $venue_code, $state, $suburb -> in array above called 'venues'.
     function village_fetch_and_insert_sessions($venue_code, $state, $suburb) {
-    
-        // Increase time limit to 5 minutes for this operation
+        
         set_time_limit(480);
-    
-        // For Debug: logs
-        //error_log("Tyring to Fetch sessions for $venue_code in $suburb, $state");
-    
-        // Define the API endpoint for sessions
-        $api_url = '' . $venue_code; // Replace with the actual API URL for sessions
-        
-        // Fetch the JSON data from the API
-        $response = wp_remote_get( $api_url );
-        
-        if ( is_wp_error( $response ) ) {
-            error_log("Error in Session API Request", $response->get_error_message());
-            return;
-        }
-    
-        // Fail safe, if a cinema is added incorrectly, skips
-        $response_code = wp_remote_retrieve_response_code( $response );
-        if ( $response_code >= 400 ) {
-            error_log("HTTP Error in Session API Request: " . $response_code);
-            return;
-        }
-        
-        // Decode the JSON response
-        $sessions = json_decode( wp_remote_retrieve_body( $response ), true );
-        
-        if ( empty( $sessions ) ) {
-            error_log("No sessions found");
-            return;
-        }
-    
-        // Loop through the sessions
-        foreach ( $sessions as $session ) {
-            $village_id = sanitize_text_field( $session['movieId'] ); // village movie ID
-            $session_id = intval( $session['id'] ); // Unique session ID
-    
-            //FOR DEBUG
-            //error_log("Processing session $session_id for movie $movie_village_id");
-            
-            // Check if the session already exists using the session ID (stored as post meta)
-            $args = array(
-                'post_type'  => 'session',
-                'meta_query' => array(
-                    array(
-                        'key'   => 'session_id', // Meta key where the session ID is stored
-                        'value' => $session_id,
-                        'compare' => '='
-                    )
-                ),
-                'posts_per_page' => 1 // Limit to 1 result
-            );
-            
-            $query = new WP_Query( $args );
-            
-            if ( $query->have_posts() ) {
-                // If the session already exists, skip it
-                wp_reset_postdata();
-                continue;
-            }
-            
-            $movie_village_id = 0;
 
-            // Query for the movie using villageID (stored as meta 'villageID')
+        $api_url = 'https://villagecinemas.com.au/api/session/getMovieSessions?cinemaId=' . $venue_code;
+
+        error_log("Village Module: Fetching sessions from " . $api_url);
+        
+        $response = wp_remote_get( $api_url );
+
+        if ( is_wp_error( $response ) ) {
+            error_log("Village Module: Error in Session API Request", $response->get_error_message());
+            return;
+        }
+
+        // Decode the JSON response
+        $movie_sessions = json_decode( wp_remote_retrieve_body( $response ), true )['Items'];
+        
+        if ( empty( $movie_sessions ) ) {
+            error_log("Village Module: No sessions found");
+            return;
+        }
+        //***********************************************//
+        //************* LOOP THROUGH MOVIES *************//
+        //***********************************************//
+        foreach ($movie_sessions as $movie){
+
+            //DEBUG 
+            error_log("Village Module: Processing Movie " . $movie['Title'] . " at " . $suburb . " in " . $state);
+
+            $movie_title = sanitize_text_field($movie['Title']);
+            $village_id = sanitize_text_field($movie['MovieId']);
+
+            // Get parent post id
             $args = array(
                 'post_type'  => 'movie',
                 'meta_query' => array(
                     array(
-                        'key'   => 'villageID', // This assumes 'villageID' was stored when creating the movie
-                        'value' => $movie_village_id,
+                        'key'   => 'villageID', // This assumes 'hoytsID' was stored when creating the movie
+                        'value' => $village_id,
                         'compare' => '='
                     )
                 ),
                 'posts_per_page' => 1 // Limit to 1 result
             );
-            
+
             $movie_query = new WP_Query( $args );
-            
+
             if ( ! $movie_query->have_posts() ) {
                 // If the movie doesn't exist, skip this session
                 wp_reset_postdata();
                 continue;
             }
-    
-            // Check if secondaryTags contains at least one accessibility
-            $allowed_terms = ['AD', 'CC', 'OPEN CAP', 'SS'];
-            $has_allowed_term = false;
-            if (!empty($session['secondaryTags'])) {
-                foreach ($session['secondaryTags'] as $tag) {
-                    if (in_array($tag, $allowed_terms)) {
-                        $has_allowed_term = true;
-                        break;
-                    }
-                }
-            }
-            if (!$has_allowed_term) {
-                continue;
-            }
-    
-            $allowed_terms = ['AD', 'CC', 'OPEN CAP', 'SS'];
-            $filtered_tags = array_filter($session['secondaryTags'], function($tag) use ($allowed_terms) {
-                return in_array($tag, $allowed_terms);
-            });
-            
+
             $movie_post = $movie_query->posts[0]; // Get the movie post object
             $movie_post_id = $movie_post->ID; // Get the movie post ID
             
-            //attach accessibilty taxonomies to parent movie
-            add_accessibility_to_movie($movie_post_id, $filtered_tags);
-    
-            // extract date and time from the session date
-            list($session_date, $session_time) = explode('T', $session['date']);
-            list($session_utc_date, $session_utc_time) = explode('T', $session['utcDate']);
-    
-            $movie_title = get_the_title($movie_post_id);
-            
-            // Prepare the session post data
-            $post_data = array(
-                'post_title'    => '"' . $movie_title . '"' . ' at village ' . $suburb . ', ' . $state . ' on ' . $session_date . ' ' . $session_time, // Title for the session post
-                'post_status'   => 'publish',
-                'post_type'     => 'session', // Custom post type for sessions
-                'post_content'  => generate_session_html($movie_title, $filtered_tags, 'village', $state, $suburb, $session_date, $session_time, esc_url( 'https://village.com.au' . $session['link'])), // No content for session posts
-                'post_parent'   => $movie_post_id // Set the movie as the parent post
-            );
-            
-            // Insert the session post and get the post ID
-            $session_post_id = wp_insert_post( $post_data );
-    
-            
-            
-            if ( $session_post_id ) {
-                // Store additional metadata including the session ID
-                update_post_meta( $session_post_id, 'session_id', $session_id ); // Store session ID to prevent duplicates
-                update_post_meta( $session_post_id, 'cinema_id', sanitize_text_field( $session['cinemaId'] ) );
-                update_post_meta( $session_post_id, 'session_date', sanitize_text_field( $session_date . " " . $session_time  ) );
-                update_post_meta( $session_post_id, 'utc_date', sanitize_text_field( $session['utcDate'] ) );
-                update_post_meta( $session_post_id, 'link', esc_url( 'https://village.com.au' . $session['link'] ) );
-                
-                // Assign secondary tags to the Accessibility taxonomy
-                if ( !empty( $session['secondaryTags'] ) && is_array($session['secondaryTags']) ) {
-                
-                    if (!empty($filtered_tags)) {
-                        foreach ($filtered_tags as $tag) {
-                            $sanitized_tag = sanitize_text_field($tag);
-                            wp_set_object_terms($session_post_id, $sanitized_tag, 'accessibility', true);
-                        }
+            //*************************************************//
+            //************* LOOP THROUGH SESSIONS *************//
+            //*************************************************//
+            foreach ($movie['Sessions'] as $session) {
+                error_log("Village Module: Processing Session " . $session['ShowDateTime'] . " for " . $movie_title . " at " . $suburb . " in " . $state);
+                // Find existing session by session ID
+                $session_id = sanitize_text_field($session['SessionId']);
+                $args = array(
+                    'post_type'  => 'session',
+                    'meta_query' => array(
+                        array(
+                            'key'   => 'session_id', // Meta key where the session ID is stored
+                            'value' => $session_id,
+                            'compare' => '='
+                        )
+                    ),
+                    'posts_per_page' => 1 // Limit to 1 result
+                );
+
+                $query = new WP_Query( $args );
+                if ( $query->have_posts() ) {
+                    // If the session already exists, skip it
+                    wp_reset_postdata();
+                    continue;
+                }
+
+                // Get the session details
+                $session_attributes = $session['Attributes'];
+                $allowed_terms = ['CC', 'OC', 'AD', 'SFF'];
+                $matching_attributes = array();
+
+                // Loop through the attributes and look for specific ShortName values
+                foreach ($session_attributes as $attribute) {
+                    if (in_array($attribute['ShortName'], $allowed_terms)) {
+                        $matching_attributes[] = $attribute['ShortName'];
                     }
                 }
-    
-                // Assign the state to the state taxonomy if not already assigned
-                if ( !has_term( 'VIC', 'state', $session_post_id ) ) {
-                    wp_set_object_terms( $session_post_id, $state, 'state', true );
+
+                // Ensure the matching_attributes array only includes the specified ShortName values and remove duplicates
+                $matching_attributes = array_unique(array_filter($matching_attributes, function($shortName) use ($allowed_terms) {
+                    return in_array($shortName, $allowed_terms);
+                }));
+
+                if (empty($matching_attributes)) {
+                    // If the session doesn't have the required attributes, skip it
+                    continue;
                 }
-    
-                // Assign 'Watergardens' to the suburb taxonomy if not already assigned
-                if ( !has_term( $suburb, 'suburb', $session_post_id ) ) {
-                    wp_set_object_terms( $session_post_id, $suburb, 'suburb', true );
-                }
-    
-                if ( !has_term( 'village', 'cinema', $session_post_id ) ) {
-                    wp_set_object_terms( $session_post_id, 'village', 'cinema', true );
-                }
-                
-                wp_set_object_terms( $session_post_id, $session_date, 'date', true );
-                wp_set_object_terms( $session_post_id, $session_time, 'time', true );
-                wp_set_object_terms( $session_post_id, $session_utc_date, 'utc_date', true );
-                wp_set_object_terms( $session_post_id, $session_utc_time, 'utc_time', true );
-    
-            }
-            
-            wp_reset_postdata(); // Reset the WP_Query data
-        }
+
+                error_log("Village Module: " . implode(', ', array_column($matching_attributes, 'ShortName')) . " attributes found for session " . $session_id);
+                add_accessibility_to_movie($movie_post_id, $matching_attributes);
+
+                // Process sesson info
+                list($session_date, $session_time_utc) = explode('T', $session['ShowDateTime']);
+                list($session_time, $utc_identifier) = explode('T', $session_time_utc);
+
+                $book_link = 'https://villagecinemas.com.au/tickets?sessionId=' . $session_id . '&cinemaId=' . $venue_code;
+
+                insert_session($movie_post_id, $movie_title, $matching_attributes, $session_date, $session_time, $session_date, 
+                       $session_time_utc, $session_id, $book_link, $state, $suburb, 'Village');
+                wp_reset_postdata();
+
+            } // End of session loop
+        } // End of movie loop 
+
+        return;
     }
 ?>

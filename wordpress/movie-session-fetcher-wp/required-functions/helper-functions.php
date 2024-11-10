@@ -162,7 +162,6 @@ function insert_session($movie_post_id, $movie_title, $access_tags, $s_date, $s_
 
 }
 
-
 /* UPLOAD IMAGE FROM URL FUNCTION
     IN: $image_url => URL of the image to be downloaded
         $post_id => ID of the post to attach the image to
