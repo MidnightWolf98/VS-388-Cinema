@@ -115,9 +115,11 @@
                 wp_reset_postdata();
                 continue;
             }
-            
-            //ADD NEW MOVIE POST CODE HERE
 
+            // **********************************
+            // TODO: ADD NEW MOVIE POST CODE HERE
+            // **********************************
+            
         } // End of movie loop
     } // End of function - village_get_movies_from_api
     
