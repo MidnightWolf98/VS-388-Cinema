@@ -128,15 +128,13 @@ function insert_session($movie_post_id, $movie_title, $access_tags, $s_date, $s_
         update_post_meta( $session_post_id, 'link', esc_url( $link ) );
         
         // Assign secondary tags to the Accessibility taxonomy
-        if ( !empty( $access_tags ) && is_array( $access_tags ) ) {
-        
-            if (!empty($filtered_tags)) {
-                foreach ($filtered_tags as $tag) {
-                    $sanitized_tag = sanitize_text_field($tag);
-                    wp_set_object_terms($session_post_id, $sanitized_tag, 'accessibility', true);
-                }
+        if (!empty($access_tags)) {
+            foreach ($access_tags as $tag) {
+                $sanitized_tag = sanitize_text_field($tag);
+                wp_set_object_terms($session_post_id, $sanitized_tag, 'accessibility', true);
             }
         }
+    
 
         // Assign the state to the state taxonomy if not already assigned
         if ( !has_term( $state, 'state', $session_post_id ) ) {
