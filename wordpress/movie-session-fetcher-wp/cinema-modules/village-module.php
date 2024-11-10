@@ -144,7 +144,7 @@
     // IN: $venue_code, $state, $suburb -> in array above called 'venues'.
     function village_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         
-        set_time_limit(480);
+        set_time_limit(600);
 
         $api_url = 'https://villagecinemas.com.au/api/session/getMovieSessions?cinemaId=' . $venue_code;
 
@@ -242,6 +242,13 @@
                     return in_array($shortName, $allowed_terms);
                 }));
 
+                // Convert "OC" to "OPEN CAP" if found
+                foreach ($matching_attributes as &$shortName) {
+                    if ($shortName === 'OC') {
+                        $shortName = 'OPEN CAP';
+                    }
+                }
+
                 if (empty($matching_attributes)) {
                     // If the session doesn't have the required attributes, skip it
                     continue;
@@ -252,7 +259,7 @@
 
                 // Process sesson info
                 list($session_date, $session_time_utc) = explode('T', $session['ShowDateTime']);
-                list($session_time, $utc_identifier) = explode('T', $session_time_utc);
+                list($session_time, $utc_identifier) = explode('+', $session_time_utc);
 
                 $book_link = 'https://villagecinemas.com.au/tickets?sessionId=' . $session_id . '&cinemaId=' . $venue_code;
 
