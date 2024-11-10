@@ -207,14 +207,14 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
     $response = wp_remote_get( $api_url );
     
     if ( is_wp_error( $response ) ) {
-        error_log("Error in Session API Request", $response->get_error_message());
+        error_log("Hoyts Module: Error in Session API Request", $response->get_error_message());
         return;
     }
 
     // Fail safe, if a cinema is added incorrectly, skips
     $response_code = wp_remote_retrieve_response_code( $response );
     if ( $response_code >= 400 ) {
-        error_log("HTTP Error in Session API Request: " . $response_code);
+        error_log("Hoyts Module: HTTP Error in Session API Request: " . $response_code);
         return;
     }
     
@@ -222,7 +222,7 @@ function hoyts_fetch_and_insert_sessions($venue_code, $state, $suburb) {
     $sessions = json_decode( wp_remote_retrieve_body( $response ), true );
     
     if ( empty( $sessions ) ) {
-        error_log("No sessions found");
+        error_log("Hoyts Module: No sessions found");
         return;
     }
 
