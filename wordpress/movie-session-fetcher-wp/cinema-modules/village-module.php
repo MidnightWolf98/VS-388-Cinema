@@ -84,7 +84,7 @@
         }
 
         //Decode JSON
-        $movies = json_decode( wp_remote_retrieve_body( $response ), true);
+        $movies = json_decode( wp_remote_retrieve_body( $response ), true)['Items'];
 
         // Empty Check
         if (empty($movies)) {
@@ -94,6 +94,10 @@
 
         // Loop thorugh movies
         foreach ($movies as $movie) {
+
+            // DEBUG - Log the movie being processed
+            error_log("Village Module: Processing movie " . $movie['Title']);
+
             $movie_title = sanitize_text_field( $movie['Title'] );
 
             // Use WP_Query to check if a post with the same movie title exists
@@ -119,7 +123,7 @@
             // **********************************
             // TODO: ADD NEW MOVIE POST CODE HERE
             // **********************************
-            
+
         } // End of movie loop
     } // End of function - village_get_movies_from_api
     
@@ -128,9 +132,9 @@
     // ********************************************************************************
     
     function village_fetch_and_insert_sessions_all_venues($village_session_id){
-        global $venues;
-        foreach ($venues as $venue) {
-            village_fetch_and_insert_sessions($village_session_id, $venue['id'], $venue['state'], $venue['suburb']);
+        global $village_venues;
+        foreach ($village_venues as $vil_venue) {
+            village_fetch_and_insert_sessions($vil_venue->id, $vil_venue->state, $vil_venue->suburb);
         }
     }
     
@@ -138,12 +142,14 @@
     add_action( 'fetch_sessions', 'village_fetch_and_insert_sessions_all_venues' );
     
     // IN: $venue_code, $state, $suburb -> in array above called 'venues'.
-    function village_fetch_and_insert_sessions($village_session_id, $venue_code, $state, $suburb) {
+    function village_fetch_and_insert_sessions($venue_code, $state, $suburb) {
         
         set_time_limit(480);
 
-        $api_url = 'https://villagecinemas.com.au/api/session/getMovieSessions?cinemaId=' . $venue_code . '&userSessionId=' . $village_session_id;
+        $api_url = 'https://villagecinemas.com.au/api/session/getMovieSessions?cinemaId=' . $venue_code;
 
+        error_log("Village Module: Fetching sessions from " . $api_url);
+        
         $response = wp_remote_get( $api_url );
 
         if ( is_wp_error( $response ) ) {
@@ -152,9 +158,9 @@
         }
 
         // Decode the JSON response
-        $movie_sessions = json_decode( wp_remote_retrieve_body( $response ), true );
+        $movie_sessions = json_decode( wp_remote_retrieve_body( $response ), true )['Items'];
         
-        if ( empty( $sessions ) ) {
+        if ( empty( $movie_sessions ) ) {
             error_log("Village Module: No sessions found");
             return;
         }
@@ -162,6 +168,10 @@
         //************* LOOP THROUGH MOVIES *************//
         //***********************************************//
         foreach ($movie_sessions as $movie){
+
+            //DEBUG 
+            error_log("Village Module: Processing Movie " . $movie['Title'] . " at " . $suburb . " in " . $state);
+
             $movie_title = sanitize_text_field($movie['Title']);
             $village_id = sanitize_text_field($movie['MovieId']);
 
@@ -193,6 +203,7 @@
             //************* LOOP THROUGH SESSIONS *************//
             //*************************************************//
             foreach ($movie['Sessions'] as $session) {
+                error_log("Village Module: Processing Session " . $session['ShowDateTime'] . " for " . $movie_title . " at " . $suburb . " in " . $state);
                 // Find existing session by session ID
                 $session_id = sanitize_text_field($session['SessionId']);
                 $args = array(
@@ -216,24 +227,28 @@
 
                 // Get the session details
                 $session_attributes = $session['Attributes'];
+                $allowed_terms = ['CC', 'OC', 'AD', 'SFF'];
                 $matching_attributes = array();
 
                 // Loop through the attributes and look for specific ShortName values
                 foreach ($session_attributes as $attribute) {
-                    if (in_array($attribute['ShortName'], array('CC', 'OC', 'AD', 'SFF'))) {
-                        $matching_attributes[] = $attribute;
+                    if (in_array($attribute['ShortName'], $allowed_terms)) {
+                        $matching_attributes[] = $attribute['ShortName'];
                     }
                 }
 
-                // Ensure the matching_attributes array only includes the specified ShortName values
-                $matching_attributes = array_filter($matching_attributes, function($attribute) {
-                    return in_array($attribute['ShortName'], array('CC', 'OC', 'AD', 'SFF'));
-                });
+                // Ensure the matching_attributes array only includes the specified ShortName values and remove duplicates
+                $matching_attributes = array_unique(array_filter($matching_attributes, function($shortName) use ($allowed_terms) {
+                    return in_array($shortName, $allowed_terms);
+                }));
 
                 if (empty($matching_attributes)) {
                     // If the session doesn't have the required attributes, skip it
                     continue;
                 }
+
+                error_log("Village Module: " . implode(', ', array_column($matching_attributes, 'ShortName')) . " attributes found for session " . $session_id);
+                add_accessibility_to_movie($movie_post_id, $matching_attributes);
 
                 // Process sesson info
                 list($session_date, $session_time_utc) = explode('T', $session['ShowDateTime']);

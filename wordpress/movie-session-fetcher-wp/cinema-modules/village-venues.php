@@ -1,5 +1,5 @@
 <?php
-$venues = [
+$village_venues = [
     (object) [
         'id' => '272',
         'suburb' => 'Airport West',
